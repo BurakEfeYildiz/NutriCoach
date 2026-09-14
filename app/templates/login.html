@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#2e7d6b">
+    <title>Giriş Yap — NutriCoach</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="brand-logo auth-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12a10 10 0 0 1 10-10z"></path>
+                        <path d="m9 12 2 2 4-4"></path>
+                    </svg>
+                </div>
+                <h1 class="auth-title">NutriCoach</h1>
+                <p class="auth-subtitle">Kişisel beslenme koçunuza giriş yapın</p>
+            </div>
+
+            <div id="authAlert" class="auth-alert hidden" role="alert"></div>
+
+            <form id="loginForm" class="auth-form" novalidate>
+                <div class="form-group">
+                    <label for="email" class="form-label">E-posta Adresi</label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="ornek@domain.com" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Şifre</label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-submit-btn" id="loginBtn">
+                    <span>Giriş Yap</span>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Hesabınız yok mu? <a href="/register" class="auth-link">Kayıt olun</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('loginForm');
+            const alertBox = document.getElementById('authAlert');
+            const submitBtn = document.getElementById('loginBtn');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('expired') === '1') {
+                alertBox.textContent = 'Oturumunuz sona erdi. Lütfen tekrar giriş yapın.';
+                alertBox.className = 'auth-alert auth-alert-info';
+                alertBox.classList.remove('hidden');
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                alertBox.classList.add('hidden');
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!email || !password) {
+                    alertBox.textContent = 'Lütfen tüm alanları doldurun.';
+                    alertBox.className = 'auth-alert auth-alert-error';
+                    alertBox.classList.remove('hidden');
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Giriş yapılıyor...';
+
+                try {
+                    await api.login(email, password);
+                    window.location.href = '/today';
+                } catch (err) {
+                    alertBox.textContent = err.message || 'Email veya şifre hatalı.';
+                    alertBox.className = 'auth-alert auth-alert-error';
+                    alertBox.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Giriş Yap';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

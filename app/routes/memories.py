@@ -6,7 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.memory import Memory
-from app.routes.dependencies import get_session
+from app.routes.dependencies import SettingsDep, assert_user_access, get_session
+from app.routes.users import CurrentUserOpt
 from app.schemas.memory import MemoryRead
 from app.services.memory_service import deactivate_memory
 from app.services.users import get_user
@@ -19,9 +20,12 @@ Database = Annotated[Session, Depends(get_session)]
 def list_memories(
     user_id: UUID,
     session: Database,
+    settings: SettingsDep,
     include_inactive: bool = False,
     limit: int = 100,
+    current_user: CurrentUserOpt = None,
 ):
+    assert_user_access(user_id, current_user, settings)
     get_user(session, str(user_id))
     query = select(Memory).where(Memory.user_id == str(user_id))
     if not include_inactive:
@@ -32,7 +36,8 @@ def list_memories(
 
 
 @router.delete("/{memory_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_memory(user_id: UUID, memory_id: UUID, session: Database):
+def delete_memory(user_id: UUID, memory_id: UUID, session: Database, settings: SettingsDep, current_user: CurrentUserOpt = None):
+    assert_user_access(user_id, current_user, settings)
     get_user(session, str(user_id))
     success = deactivate_memory(session, str(user_id), str(memory_id))
     if not success:

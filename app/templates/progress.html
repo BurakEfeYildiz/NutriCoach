@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}İlerleme — NutriCoach{% endblock %}
+
+{% block content %}
+<div class="view-container progress-view">
+    <!-- Weight Summary Card -->
+    <section class="card weight-hero-card">
+        <div class="card-header-flex">
+            <div>
+                <span class="hero-label">KİLO TAKİBİ</span>
+                <h1 class="card-headline">Vücut Ağırlığı</h1>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnOpenAddWeight">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Kilo Gir</span>
+            </button>
+        </div>
+
+        <div class="weight-metrics-row">
+            <div class="weight-main-stat">
+                <span class="weight-display-val" id="currentWeightVal">—</span>
+                <span class="weight-display-unit">kg</span>
+                <span class="trend-pill" id="weightTrendPill">Veri bekleniyor</span>
+            </div>
+
+            <div class="weight-meta-stats">
+                <div class="stat-box">
+                    <span class="stat-box-label">Hedef Kilo</span>
+                    <span class="stat-box-val" id="goalWeightVal">—</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-box-label">Son Değişim</span>
+                    <span class="stat-box-val" id="weightDeltaVal">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Native SVG Weight Chart -->
+        <div class="chart-container" id="chartContainer">
+            <div class="chart-placeholder" id="chartPlaceholder">Kilo grafiği için en az bir ölçüm gereklidir.</div>
+            <svg id="weightSvgChart" class="weight-svg-chart" viewBox="0 0 600 220" preserveAspectRatio="none" style="display: none;"></svg>
+        </div>
+    </section>
+
+    <!-- 7-Day Nutrition Adherence Summary -->
+    <section class="card nutrition-summary-card">
+        <div class="card-header-flex">
+            <div>
+                <span class="hero-label">7 GÜNLÜK BESLENME</span>
+                <h2 class="card-headline">Haftalık Uyum</h2>
+            </div>
+            <span class="badge" id="recordedDaysBadge">— gün kayıtlı</span>
+        </div>
+
+        <div class="weekly-stats-grid">
+            <div class="weekly-stat">
+                <span class="wstat-label">Kayıtlı Günler Ortalaması</span>
+                <span class="wstat-value" id="weeklyAvgCalories">— kcal</span>
+            </div>
+            <div class="weekly-stat">
+                <span class="wstat-label">Eksik Gün Sayısı</span>
+                <span class="wstat-value" id="weeklyMissingDays">— gün</span>
+            </div>
+        </div>
+        <p class="footnote-text">* Eksik günler sıfır kalori olarak sayılmaz; yalnızca kayıt girilen günlerin ortalaması alınır.</p>
+    </section>
+
+    <!-- Weight Logs History -->
+    <section class="weight-history-section">
+        <h2 class="section-title">Geçmiş Ölçümler</h2>
+        <div class="weight-logs-list" id="weightLogsList">
+            <div class="skeleton-card"></div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal Log Weight -->
+<dialog id="modalProgressWeight" class="app-dialog modal-form-dialog">
+    <form method="dialog" class="dialog-card" id="formProgressWeight">
+        <div class="dialog-header">
+            <h3 class="dialog-title">Kilo Kaydet</h3>
+            <button type="button" class="dialog-close" id="btnCloseProgressWeight" aria-label="Kapat">&times;</button>
+        </div>
+        <div class="dialog-body">
+            <div class="form-group">
+                <label for="inputProgressWeightKg">Kilo (kg)</label>
+                <input type="number" id="inputProgressWeightKg" class="form-control" placeholder="75.5" step="0.05" min="10" max="500" required>
+            </div>
+            <div class="form-group">
+                <label for="inputProgressWeightTime">Tarih & Saat</label>
+                <input type="datetime-local" id="inputProgressWeightTime" class="form-control" required>
+            </div>
+        </div>
+        <div class="dialog-actions">
+            <button type="button" class="btn btn-secondary" id="btnCancelProgressWeight">Vazgeç</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitProgressWeight">Kaydet</button>
+        </div>
+    </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/progress.js"></script>
+{% endblock %}

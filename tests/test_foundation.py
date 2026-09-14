@@ -10,7 +10,7 @@ from app.db.migrate import upgrade_database
 
 @pytest.fixture
 def settings(tmp_path):
-    config = Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'test.db'}")
+    config = Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'test.db'}", allow_unauthenticated_legacy=True)
     upgrade_database(config.database_url)
     return config
 

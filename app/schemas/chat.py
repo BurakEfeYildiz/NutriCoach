@@ -25,6 +25,11 @@ class ActionResult(Schema):
     version: int | None = None
 
 
+class GroundingSource(Schema):
+    title: str
+    url: str
+
+
 class MessageRead(Schema):
     id: str
     user_id: str
@@ -38,8 +43,10 @@ class MessageRead(Schema):
     action_results: list[ActionResult]
     error_type: str | None
     created_at: datetime
+    grounding_sources: list[GroundingSource] = Field(default_factory=list)
 
 
 class MessageResult(Schema):
     user_message: MessageRead
     assistant_message: MessageRead | None
+    grounding_sources: list[GroundingSource] = Field(default_factory=list)

@@ -13,7 +13,7 @@ import re
 from app.core.config import Settings
 from app.models.chat import AIRequest, Conversation, Message
 from app.models.user import utc_now
-from app.schemas.chat import ConversationRead, MessageCreate, MessageRead, MessageResult
+from app.schemas.chat import ConversationRead, GroundingSource, MessageCreate, MessageRead, MessageResult
 from app.schemas.intents import IntentPlan, NutritionQuestion
 from app.schemas.memory import MemoryExtractionResult
 from app.services.chat_actions import ClarificationNeeded, apply_actions
@@ -22,6 +22,27 @@ from app.services.gemini_service import GeminiProvider, ProviderError, ProviderR
 from app.services.memory_service import deactivate_memory_by_key, persist_candidate, should_extract_memories
 from app.services.nutrition import daily_summary, weekly_summary
 from app.services.users import get_user
+
+SEARCH_INDICATORS = {
+    # Current / live event keywords
+    "bugünkü", "güncel", "son dakika", "kaç kaç", "maçı", "skoru", "skor", "maç sonucu",
+    "araştırma", "araştırmalar", "rehberi",
+    # Common restaurant / coffee / fast-food / packaged food brands & delivery
+    "coffy", "starbucks", "mcdonald", "mcdonalds", "burger king", "kfc",
+    "subway", "domino", "dominos", "pizza hut", "algida", "ülker", "eti",
+    "pınar", "sütaş", "torku", "dunkin", "popeyes", "arby", "tavuk dünyası",
+    "krispy kreme", "caribou", "danone", "nutella", "nestle", "kinder",
+    "snickers", "coca cola", "pepsi", "red bull", "migros", "getir", "trendyol",
+    "marka", "markası", "markaları",
+    # Explicit search phrases
+    "internetten bak", "internetten ara", "internette ara", "araştır",
+    "google'da ara", "web'den kontrol et", "web'de ara", "çevrimiçi ara",
+}
+
+
+def should_use_search(text: str) -> bool:
+    lowered = text.lower().replace("İ", "i").replace("I", "ı")
+    return any(indicator in lowered for indicator in SEARCH_INDICATORS)
 
 
 class ChatService:
@@ -107,7 +128,7 @@ class ChatService:
                 remaining -= len(content)
             return {'now': now.isoformat(), 'timezone': user.timezone, 'recent_messages': list(reversed(history)), 'current_message': text}
 
-    def call(self, user_id: str, message_id: str, phase: str, payload: dict) -> IntentPlan | str:
+    def call(self, user_id: str, message_id: str, phase: str, payload: dict, enable_search: bool = False) -> tuple[IntentPlan | str, list[dict]]:
         with self.sessions() as session:
             log = AIRequest(user_id=user_id, message_id=message_id, model=self.redact(self.provider.model)[:200], phase=phase)
             session.add(log)
@@ -118,7 +139,7 @@ class ChatService:
         failure: ProviderError | None = None
         parsed = None
         try:
-            result = self.provider.extract_intent(payload) if phase == 'intent' else self.provider.generate_reply(payload)
+            result = self.provider.extract_intent(payload) if phase == 'intent' else self.provider.generate_reply(payload, enable_search=enable_search)
             output = self.redact(result.text)
             if not output.strip() or len(output) > (64000 if phase == 'intent' else 8000):
                 raise ProviderError('invalid_output')
@@ -144,9 +165,17 @@ class ChatService:
             session.commit()
         if failure:
             raise failure
-        return parsed
+        sources = getattr(result, 'grounding_sources', None) or []
+        return parsed, sources
 
-    def finish(self, user_id: str, message_id: str, content: str, error_type: str | None = None) -> MessageResult:
+    def finish(
+        self,
+        user_id: str,
+        message_id: str,
+        content: str,
+        error_type: str | None = None,
+        grounding_sources: list[dict] | None = None,
+    ) -> MessageResult:
         with self.sessions() as session:
             message = session.scalar(select(Message).where(Message.user_id == user_id, Message.id == message_id))
             status = 'failed' if error_type else 'completed'
@@ -157,7 +186,13 @@ class ChatService:
             session.add(Message(user_id=user_id, conversation_id=message.conversation_id, role='assistant',
                                 content=self.redact(content), status=status, in_reply_to=message.id, error_type=error_type))
             session.commit()
-            return self.result(session, message)
+            res = self.result(session, message)
+            if grounding_sources:
+                sources = [GroundingSource(title=s.get('title') or 'Web Kaynağı', url=s.get('url')) for s in grounding_sources if s.get('url')]
+                res.grounding_sources = sources
+                if res.assistant_message:
+                    res.assistant_message.grounding_sources = sources
+            return res
 
     def process(self, user_id: str, conversation_id: str, data: MessageCreate) -> tuple[MessageResult, bool]:
         snapshot, is_new = self.claim(user_id, conversation_id, data)
@@ -167,7 +202,7 @@ class ChatService:
         effects_committed = False
         try:
             payload = self.input_payload(user_id, conversation_id, message.id, message.content, message.created_at)
-            plan = self.call(user_id, message.id, 'intent', payload)
+            plan, _ = self.call(user_id, message.id, 'intent', payload)
             if plan.needs_clarification:
                 return self.finish(user_id, message.id, plan.clarification_question), True
             with self.sessions() as session:
@@ -203,8 +238,9 @@ class ChatService:
                 }
                 if any(isinstance(action, NutritionQuestion) for action in plan.actions):
                     coach_payload['last_7_days'] = weekly_summary(session, user_id, now=message.created_at).model_dump(mode='json')
-            reply = self.call(user_id, message.id, 'coach', coach_payload)
-            return self.finish(user_id, message.id, reply), True
+            enable_search = should_use_search(message.content)
+            reply, sources = self.call(user_id, message.id, 'coach', coach_payload, enable_search=enable_search)
+            return self.finish(user_id, message.id, reply, grounding_sources=sources), True
         except ClarificationNeeded as error:
             return self.finish(user_id, message.id, str(error)), True
         except ProviderError as error:

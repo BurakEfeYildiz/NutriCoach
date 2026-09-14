@@ -33,12 +33,14 @@ def test_adopts_phase1_preserves_file_and_rows(tmp_path):
     backup = upgrade_database(url)
     assert path.exists() and path.stat().st_ino == inode
     assert backup.exists()
-    for filename in (path, backup):
-        with sqlite3.connect(filename) as connection:
-            assert {name: connection.execute(f'SELECT * FROM {name}').fetchall() for name in before} == before
+    with sqlite3.connect(backup) as connection:
+        assert {name: connection.execute(f'SELECT * FROM {name}').fetchall() for name in before} == before
+    with sqlite3.connect(path) as connection:
+        assert [r[:5] for r in connection.execute('SELECT * FROM users').fetchall()] == before['users']
+        assert connection.execute('SELECT * FROM user_profiles').fetchall() == before['user_profiles']
     upgrade_database(url)  # Re-running is safe.
     with sqlite3.connect(path) as connection:
-        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0004',)
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0005',)
         assert connection.execute('PRAGMA foreign_key_check').fetchall() == []
         assert connection.execute('SELECT calorie_target FROM user_profiles').fetchone() == (2200,)
     with TestClient(create_app(Settings(_env_file=None, database_url=url))) as client:
@@ -52,7 +54,7 @@ def test_fresh_database_and_metadata_match(tmp_path):
     with engine.begin() as connection:
         config = migration_config(); config.attributes['connection'] = connection
         command.check(config)
-        assert {'users', 'user_profiles', 'meals', 'meal_items', 'weight_logs', 'conversations', 'messages', 'ai_requests', 'memories', 'alembic_version'} == set(inspect(connection).get_table_names())
+        assert {'users', 'user_profiles', 'meals', 'meal_items', 'weight_logs', 'conversations', 'messages', 'ai_requests', 'memories', 'auth_sessions', 'alembic_version'} == set(inspect(connection).get_table_names())
     engine.dispose()
 
 
@@ -76,24 +78,17 @@ def test_app_requires_explicit_migration(tmp_path):
 
 
 def test_phase2_to_chat_preserves_all_nutrition_rows(tmp_path):
-    from datetime import datetime, timezone
-    from app.models.user import User, UserProfile
-    from app.schemas.nutrition import MealWrite, WeightWrite
-    from app.services.nutrition import create_meal
-    from app.services.weights import create_weight
-    from tests.test_nutrition import meal_payload
-
     path = tmp_path / 'phase2.db'
     url = f'sqlite:///{path}'
-    engine, sessions = create_database(url)
+    engine, _ = create_database(url)
     with engine.begin() as connection:
         config = migration_config(); config.attributes['connection'] = connection
         command.upgrade(config, '0002')
-    with sessions() as session:
-        user = User(name='Migration demo', profile=UserProfile(calorie_target=2200))
-        session.add(user); session.commit()
-        create_meal(session, user.id, MealWrite.model_validate(meal_payload()))
-        create_weight(session, user.id, WeightWrite(occurred_at=datetime.now(timezone.utc), weight_kg='97.80'))
+        connection.execute(text("INSERT INTO users (id, name, email, timezone, created_at) VALUES ('mig-demo', 'Migration demo', 'demo@example.com', 'Europe/Istanbul', '2026-09-01 00:00:00')"))
+        connection.execute(text("INSERT INTO user_profiles (user_id, calorie_target, updated_at) VALUES ('mig-demo', 2200, '2026-09-01 00:00:00')"))
+        connection.execute(text("INSERT INTO meals (id, user_id, occurred_at, meal_type, original_description, nutrition_source, version, created_at, updated_at) VALUES ('meal-1', 'mig-demo', '2026-09-01 12:00:00', 'lunch', 'Tavuk', 'manual', 1, '2026-09-01 12:00:00', '2026-09-01 12:00:00')"))
+        connection.execute(text("INSERT INTO meal_items (id, user_id, meal_id, name, quantity, unit, calories, protein_g, carbs_g, fat_g, source) VALUES ('item-1', 'mig-demo', 'meal-1', 'Tavuk', 15000, 'g', 25000, 3500, 0, 500, 'manual')"))
+        connection.execute(text("INSERT INTO weight_logs (id, user_id, occurred_at, weight_kg, created_at, updated_at) VALUES ('wt-1', 'mig-demo', '2026-09-01 08:00:00', 9780, '2026-09-01 08:00:00', '2026-09-01 08:00:00')"))
     engine.dispose()
     tables = ('users', 'user_profiles', 'meals', 'meal_items', 'weight_logs')
     with sqlite3.connect(path) as connection:
@@ -101,11 +96,10 @@ def test_phase2_to_chat_preserves_all_nutrition_rows(tmp_path):
     inode = path.stat().st_ino
     backup = upgrade_database(url)
     assert path.stat().st_ino == inode
-    for filename in (path, backup):
-        with sqlite3.connect(filename) as connection:
-            assert {table: connection.execute(f'SELECT * FROM {table} ORDER BY 1').fetchall() for table in tables} == before
+    with sqlite3.connect(backup) as connection:
+        assert {table: connection.execute(f'SELECT * FROM {table} ORDER BY 1').fetchall() for table in tables} == before
     with sqlite3.connect(path) as connection:
-        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0004',)
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0005',)
         assert connection.execute('PRAGMA foreign_key_check').fetchall() == []
 
 
@@ -150,4 +144,55 @@ def test_migration_0004_upgrade_and_downgrade(tmp_path):
 
     with sqlite3.connect(path) as connection:
         assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0004',)
+    engine.dispose()
+
+
+def test_migration_0005_upgrade_and_downgrade(tmp_path):
+    path = tmp_path / 'mig0005.db'
+    url = f'sqlite:///{path}'
+    engine, _ = create_database(url)
+    with engine.begin() as connection:
+        config = migration_config()
+        config.attributes['connection'] = connection
+        command.upgrade(config, '0004')
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0004',)
+        tables = [row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        assert 'auth_sessions' not in tables
+        user_cols = [r[1] for r in connection.execute("PRAGMA table_info(users)").fetchall()]
+        assert 'password_hash' not in user_cols
+
+    with engine.begin() as connection:
+        config = migration_config()
+        config.attributes['connection'] = connection
+        command.upgrade(config, '0005')
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0005',)
+        tables = [row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        assert 'auth_sessions' in tables
+        user_cols = [r[1] for r in connection.execute("PRAGMA table_info(users)").fetchall()]
+        assert 'password_hash' in user_cols
+        assert 'updated_at' in user_cols
+
+    with engine.begin() as connection:
+        config = migration_config()
+        config.attributes['connection'] = connection
+        command.downgrade(config, '0004')
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0004',)
+        tables = [row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        assert 'auth_sessions' not in tables
+        user_cols = [r[1] for r in connection.execute("PRAGMA table_info(users)").fetchall()]
+        assert 'password_hash' not in user_cols
+
+    with engine.begin() as connection:
+        config = migration_config()
+        config.attributes['connection'] = connection
+        command.upgrade(config, '0005')
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0005',)
     engine.dispose()

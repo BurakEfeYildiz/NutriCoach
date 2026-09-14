@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Bugün — NutriCoach{% endblock %}
+
+{% block content %}
+<div class="view-container dashboard-view">
+    <!-- Header Greeting -->
+    <section class="dashboard-header">
+        <div class="greeting-content">
+            <h1 class="greeting-title" id="greetingTitle">Merhaba</h1>
+            <p class="greeting-date" id="greetingDate">Yükleniyor...</p>
+        </div>
+        <div class="quick-actions">
+            <button class="btn btn-primary" id="btnQuickAddMeal">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Öğün Ekle</span>
+            </button>
+            <input type="file" id="dashboardPhotoInput" accept="image/jpeg,image/png,image/webp" capture="environment" style="display: none;">
+            <button class="btn btn-secondary" id="btnQuickPhotoMeal">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                <span>Fotoğraftan Ekle</span>
+            </button>
+            <button class="btn btn-secondary" id="btnQuickAddWeight">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>Kilo Gir</span>
+            </button>
+            <a href="/coach" class="btn btn-accent">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Koça Sor</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Main Nutrition Progress Card -->
+    <section class="card nutrition-hero-card" id="nutritionHeroCard">
+        <div class="hero-header">
+            <span class="hero-label">GÜNLÜK ENERJİ</span>
+            <span class="hero-badge" id="heroStatusBadge">Yükleniyor</span>
+        </div>
+        
+        <div class="hero-body">
+            <div class="calorie-focus">
+                <span class="calorie-value" id="calorieValue">—</span>
+                <span class="calorie-unit">kcal</span>
+            </div>
+            
+            <div class="calorie-meta" id="calorieMeta">
+                <div class="meta-item">
+                    <span class="meta-label">Hedef</span>
+                    <span class="meta-value" id="calorieTargetVal">—</span>
+                </div>
+                <div class="meta-divider"></div>
+                <div class="meta-item">
+                    <span class="meta-label">Kalan</span>
+                    <span class="meta-value" id="calorieRemainingVal">—</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="calorie-progress-container" id="calorieProgressContainer">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="calorieProgressBar" style="width: 0%;"></div>
+            </div>
+        </div>
+        <p class="hero-subtext" id="heroSubtext"></p>
+    </section>
+
+    <!-- Macros Grid -->
+    <section class="macros-section">
+        <h2 class="section-title">Makro Besinler</h2>
+        <div class="macros-grid">
+            <div class="card macro-card" id="macroProtein">
+                <div class="macro-header">
+                    <span class="macro-name">Protein</span>
+                    <span class="macro-ratio" id="proteinRatio">— / — g</span>
+                </div>
+                <div class="macro-progress-bg">
+                    <div class="macro-progress-fill protein-fill" id="proteinFill" style="width: 0%;"></div>
+                </div>
+                <span class="macro-remaining" id="proteinRemaining">—</span>
+            </div>
+
+            <div class="card macro-card" id="macroCarbs">
+                <div class="macro-header">
+                    <span class="macro-name">Karbonhidrat</span>
+                    <span class="macro-ratio" id="carbsRatio">— / — g</span>
+                </div>
+                <div class="macro-progress-bg">
+                    <div class="macro-progress-fill carbs-fill" id="carbsFill" style="width: 0%;"></div>
+                </div>
+                <span class="macro-remaining" id="carbsRemaining">—</span>
+            </div>
+
+            <div class="card macro-card" id="macroFat">
+                <div class="macro-header">
+                    <span class="macro-name">Yağ</span>
+                    <span class="macro-ratio" id="fatRatio">— / — g</span>
+                </div>
+                <div class="macro-progress-bg">
+                    <div class="macro-progress-fill fat-fill" id="fatFill" style="width: 0%;"></div>
+                </div>
+                <span class="macro-remaining" id="fatRemaining">—</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Today's Meals Section -->
+    <section class="meals-section">
+        <div class="section-header-flex">
+            <h2 class="section-title">Bugünün Öğünleri</h2>
+            <a href="/meals" class="link-subtle">Tümünü Gör &rarr;</a>
+        </div>
+        <div class="meals-list" id="todayMealsList">
+            <div class="skeleton-card"></div>
+        </div>
+    </section>
+</div>
+
+<!-- Quick Add Meal Dialog -->
+<dialog id="modalAddMeal" class="app-dialog modal-form-dialog">
+    <form method="dialog" class="dialog-card" id="formAddMeal">
+        <div class="dialog-header">
+            <h3 class="dialog-title">Öğün Ekle</h3>
+            <button type="button" class="dialog-close" id="btnCloseAddMeal" aria-label="Kapat">&times;</button>
+        </div>
+        <div class="dialog-body">
+            <div class="form-group">
+                <label for="mealType">Öğün Tipi</label>
+                <select id="mealType" class="form-control" required>
+                    <option value="breakfast">Kahvaltı</option>
+                    <option value="lunch">Öğle Yemeği</option>
+                    <option value="dinner">Akşam Yemeği</option>
+                    <option value="snack">Ara Öğün</option>
+                    <option value="other">Diğer</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="mealDescription">Açıklama / Yiyecekler</label>
+                <input type="text" id="mealDescription" class="form-control" placeholder="Örn: 200g tavuk ızgara ve salata" required>
+            </div>
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label for="itemQuantity">Miktar</label>
+                    <input type="number" id="itemQuantity" class="form-control" value="1" step="0.1" min="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemUnit">Birim</label>
+                    <input type="text" id="itemUnit" class="form-control" value="porsiyon" required>
+                </div>
+            </div>
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label for="itemCalories">Kalori (kcal)</label>
+                    <input type="number" id="itemCalories" class="form-control" placeholder="0" min="0" step="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemProtein">Protein (g)</label>
+                    <input type="number" id="itemProtein" class="form-control" placeholder="0" min="0" step="0.1" required>
+                </div>
+            </div>
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label for="itemCarbs">Karb (g)</label>
+                    <input type="number" id="itemCarbs" class="form-control" placeholder="0" min="0" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label for="itemFat">Yağ (g)</label>
+                    <input type="number" id="itemFat" class="form-control" placeholder="0" min="0" step="0.1" required>
+                </div>
+            </div>
+        </div>
+        <div class="dialog-actions">
+            <button type="button" class="btn btn-secondary" id="btnCancelAddMeal">Vazgeç</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitAddMeal">Kaydet</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Quick Add Weight Dialog -->
+<dialog id="modalAddWeight" class="app-dialog modal-form-dialog">
+    <form method="dialog" class="dialog-card" id="formAddWeight">
+        <div class="dialog-header">
+            <h3 class="dialog-title">Kilo Kaydet</h3>
+            <button type="button" class="dialog-close" id="btnCloseAddWeight" aria-label="Kapat">&times;</button>
+        </div>
+        <div class="dialog-body">
+            <div class="form-group">
+                <label for="weightKg">Güncel Kilonuz (kg)</label>
+                <input type="number" id="weightKg" class="form-control" placeholder="75.5" step="0.1" min="10" max="500" required>
+            </div>
+        </div>
+        <div class="dialog-actions">
+            <button type="button" class="btn btn-secondary" id="btnCancelAddWeight">Vazgeç</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitAddWeight">Kaydet</button>
+        </div>
+    </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}

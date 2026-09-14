@@ -22,5 +22,19 @@ class Settings(BaseSettings):
     context_max_memories: int = Field(default=10, ge=1, le=50)
     memory_min_confidence: Decimal = Field(default=Decimal('0.60'), ge=0, le=1)
 
-    app_environment: Literal['local', 'production'] = 'production'
+    app_environment: Literal['local', 'production'] = Field(default='local', validation_alias=AliasChoices('APP_ENV', 'NUTRICOACH_APP_ENVIRONMENT'))
     gemini_diagnostics: bool = False
+
+    secret_key: SecretStr = Field(default=SecretStr("nutricoach-insecure-dev-secret-change-in-prod"), validation_alias=AliasChoices("SECRET_KEY", "NUTRICOACH_SECRET_KEY"))
+    session_cookie_name: str = "nutricoach_session"
+    session_ttl_days: int = Field(default=30, ge=1, le=365)
+    session_cookie_secure: bool | None = None
+    enable_dev_bootstrap: bool = False
+    allow_unauthenticated_legacy: bool = False
+    csrf_secret: SecretStr = Field(default=SecretStr("nutricoach-csrf-dev-secret"), validation_alias=AliasChoices("CSRF_SECRET", "NUTRICOACH_CSRF_SECRET"))
+
+    @property
+    def is_cookie_secure(self) -> bool:
+        if self.session_cookie_secure is not None:
+            return self.session_cookie_secure
+        return self.app_environment == "production"

@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Profil — NutriCoach{% endblock %}
+
+{% block content %}
+<div class="view-container profile-view">
+    <!-- Account Information Card -->
+    <section class="card profile-account-card">
+        <div class="card-header-flex">
+            <div>
+                <span class="hero-label">HESAP DETAYLARI</span>
+                <h1 class="card-headline">Hesap Bilgileri</h1>
+            </div>
+            <a href="/logout" class="btn btn-secondary btn-sm" id="btnAccountLogout">
+                <span>Çıkış Yap</span>
+            </a>
+        </div>
+        <div class="account-details-grid">
+            <div class="account-field">
+                <span class="account-label">Kullanıcı Adı:</span>
+                <span class="account-value" id="accountName">{{ user.name if user and user.name else '—' }}</span>
+            </div>
+            <div class="account-field">
+                <span class="account-label">E-posta:</span>
+                <span class="account-value" id="accountEmail">{{ user.email if user and user.email else '—' }}</span>
+            </div>
+            <div class="account-field">
+                <span class="account-label">Saat Dilimi:</span>
+                <span class="account-value" id="accountTimezone">{{ user.timezone if user and user.timezone else 'Europe/Istanbul' }}</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Password Change Card -->
+    <section class="card password-card">
+        <div class="card-header-flex">
+            <div>
+                <span class="hero-label">GÜVENLİK</span>
+                <h2 class="card-headline">Şifre Değiştir</h2>
+            </div>
+            <button type="submit" form="formChangePassword" class="btn btn-secondary" id="btnChangePassword">
+                <span>Şifreyi Güncelle</span>
+            </button>
+        </div>
+
+        <div id="passwordAlert" class="auth-alert hidden" role="alert"></div>
+
+        <form id="formChangePassword" class="password-form">
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label for="pwdCurrent">Mevcut Şifre</label>
+                    <input type="password" id="pwdCurrent" class="form-control" required autocomplete="current-password" placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label for="pwdNew">Yeni Şifre (En az 8 karakter)</label>
+                    <input type="password" id="pwdNew" class="form-control" required minlength="8" autocomplete="new-password" placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label for="pwdConfirm">Yeni Şifre Tekrar</label>
+                    <input type="password" id="pwdConfirm" class="form-control" required minlength="8" autocomplete="new-password" placeholder="••••••••">
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- Profile Edit Card -->
+    <section class="card profile-card">
+        <div class="card-header-flex">
+            <div>
+                <span class="hero-label">HEDEFLER VE BİLGİLER</span>
+                <h2 class="card-headline">Beslenme ve Vücut Hedefleri</h2>
+            </div>
+            <button type="submit" form="formProfile" class="btn btn-primary" id="btnSaveProfile">
+                <span>Hedefleri Kaydet</span>
+            </button>
+        </div>
+
+        <form id="formProfile" class="profile-form">
+            <h3 class="form-subheading">Vücut Bilgileri</h3>
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label for="profBirthDate">Doğum Tarihi</label>
+                    <input type="date" id="profBirthDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="profSex">Biyolojik Cinsiyet</label>
+                    <select id="profSex" class="form-control">
+                        <option value="unspecified">Belirtilmedi</option>
+                        <option value="female">Kadın</option>
+                        <option value="male">Erkek</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="profHeight">Boy (cm)</label>
+                    <input type="number" id="profHeight" class="form-control" placeholder="175" step="0.5" min="50" max="280">
+                </div>
+            </div>
+
+            <h3 class="form-subheading">Ağırlık ve Aktivite</h3>
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label for="profGoalWeight">Hedef Kilo (kg)</label>
+                    <input type="number" id="profGoalWeight" class="form-control" placeholder="70.0" step="0.1" min="20" max="400">
+                </div>
+                <div class="form-group">
+                    <label for="profActivityLevel">Aktivite Seviyesi</label>
+                    <select id="profActivityLevel" class="form-control">
+                        <option value="">Seçilmedi</option>
+                        <option value="sedentary">Hareketsiz (Masa başı)</option>
+                        <option value="light">Hafif Hareketli (1-2 gün spor)</option>
+                        <option value="moderate">Orta Düzey (3-5 gün spor)</option>
+                        <option value="active">Çok Hareketli (6-7 gün spor)</option>
+                        <option value="very_active">Profesyonel / Ağır Fiziksel</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="profWeeklyChange">Haftalık Değişim Hedefi (kg)</label>
+                    <input type="number" id="profWeeklyChange" class="form-control" placeholder="-0.5" step="0.1" min="-3" max="3">
+                </div>
+            </div>
+
+            <h3 class="form-subheading">Günlük Besin Hedefleri</h3>
+            <div class="form-row-4">
+                <div class="form-group">
+                    <label for="profCalories">Günlük Kalori (kcal)</label>
+                    <input type="number" id="profCalories" class="form-control" placeholder="2000" min="500" max="15000" step="10">
+                </div>
+                <div class="form-group">
+                    <label for="profProtein">Protein (g)</label>
+                    <input type="number" id="profProtein" class="form-control" placeholder="150" min="0" max="1000" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="profCarbs">Karbonhidrat (g)</label>
+                    <input type="number" id="profCarbs" class="form-control" placeholder="200" min="0" max="1500" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="profFat">Yağ (g)</label>
+                    <input type="number" id="profFat" class="form-control" placeholder="65" min="0" max="500" step="1">
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- Long-Term Memory Section -->
+    <section class="card memories-card">
+        <div class="card-header-flex">
+            <div>
+                <span class="hero-label">UZUN VADELİ HAFIZA</span>
+                <h2 class="card-headline">Koçun Hakkında Bildikleri</h2>
+            </div>
+            <span class="badge" id="memoryCountBadge">0 kayıt</span>
+        </div>
+        <p class="section-description">
+            NutriCoach, sohbetleriniz sırasında belirttiğiniz yiyecek tercihlerini, diyet kısıtlarınızı ve rutinlerinizi otomatik olarak hatırlar ve önerilerini buna göre uyarlar.
+        </p>
+
+        <div class="memories-list" id="memoriesList">
+            <div class="skeleton-card"></div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/profile.js"></script>
+{% endblock %}

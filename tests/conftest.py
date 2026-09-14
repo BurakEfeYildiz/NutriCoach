@@ -19,7 +19,7 @@ def assert_no_connections(app):
 
 @pytest.fixture
 def nutrition_app(tmp_path):
-    settings = Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'nutrition.db'}")
+    settings = Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'nutrition.db'}", allow_unauthenticated_legacy=True)
     upgrade_database(settings.database_url)
     return create_app(settings)
 
@@ -37,7 +37,7 @@ def users(client):
 
 @pytest.fixture
 def chat_env(tmp_path):
-    settings = Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'chat.db'}", gemini_api_key='TEST_SECRET_NOT_FOR_LOGS', gemini_model='fake-gemini')
+    settings = Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'chat.db'}", gemini_api_key='TEST_SECRET_NOT_FOR_LOGS', gemini_model='fake-gemini', allow_unauthenticated_legacy=True)
     upgrade_database(settings.database_url)
     fake = FakeGeminiProvider()
     app = create_app(settings, provider=fake)
