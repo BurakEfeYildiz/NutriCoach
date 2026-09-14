@@ -205,6 +205,9 @@ def test_production_cookie_secure_setting(tmp_path):
         _env_file=None,
         database_url=f"sqlite:///{tmp_path / 'prod.db'}",
         app_environment="production",
+        secret_key="valid-test-production-secret-key-at-least-32-chars",
+        csrf_secret="valid-test-production-csrf-secret-at-least-32-chars",
+        allow_sqlite_in_production=True,
     )
     upgrade_database(settings.database_url)
     app = create_app(settings)

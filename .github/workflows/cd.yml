@@ -1,0 +1,68 @@
+name: CD - Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build, Migrate & Deploy
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write # Required for Workload Identity Federation
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          # Uses Workload Identity Federation for keyless, secure auth
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and Push Container Image
+        env:
+          IMAGE_URI: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_AR_REPO }}/nutricoach:${{ github.sha }}
+          LATEST_URI: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_AR_REPO }}/nutricoach:latest
+        run: |
+          docker build -t "$IMAGE_URI" -t "$LATEST_URI" .
+          docker push "$IMAGE_URI"
+          docker push "$LATEST_URI"
+
+      - name: Run Database Migrations (Cloud Run Job)
+        # Migrations run in a dedicated, isolated execution before traffic switches.
+        # This prevents multi-instance migration race conditions.
+        run: |
+          gcloud run jobs execute nutricoach-migrator \
+            --region ${{ vars.GCP_REGION }} \
+            --wait
+
+      - name: Deploy to Cloud Run Service
+        env:
+          IMAGE_URI: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_AR_REPO }}/nutricoach:${{ github.sha }}
+        run: |
+          gcloud run deploy nutricoach \
+            --image "$IMAGE_URI" \
+            --region ${{ vars.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8080 \
+            --add-cloudsql-instances ${{ vars.GCP_CLOUDSQL_INSTANCE }} \
+            --set-env-vars "APP_ENV=production,PORT=8080,ALLOWED_HOSTS=*" \
+            --set-secrets "DATABASE_URL=nutricoach-db-url:latest,GEMINI_API_KEY=nutricoach-gemini-key:latest,SECRET_KEY=nutricoach-secret-key:latest,CSRF_SECRET=nutricoach-csrf-secret:latest"
