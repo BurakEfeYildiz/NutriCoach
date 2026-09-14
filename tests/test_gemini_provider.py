@@ -4,6 +4,8 @@ import httpx
 import pytest
 from google.genai import errors, types
 
+from pydantic import ValidationError
+
 from app.core.config import Settings
 from app.schemas.intents import IntentPlan
 from app.services.gemini_service import GoogleGeminiProvider, ProviderError, wire_schema
@@ -56,7 +58,7 @@ def test_official_sdk_config_usage_and_structured_wire_schema(monkeypatch):
     assert isinstance(config, types.GenerateContentConfig)
     assert config.response_mime_type == 'application/json'
     assert config.response_json_schema == wire_schema()
-    assert 'discriminator' not in str(wire_schema()) and 'oneOf' not in str(wire_schema())
+    assert 'discriminator' not in str(wire_schema()) and 'oneOf' not in str(wire_schema()) and 'maxItems' not in str(wire_schema())
     provider.generate_reply({'today': {'totals': None}})
     assert stub.calls[-1]['config'].response_json_schema is None
 
@@ -115,3 +117,27 @@ def test_config_supports_existing_and_new_env_names(monkeypatch):
     assert config.gemini_api_key.get_secret_value() == 'new-key'
     assert 'new-key' not in repr(config)
     assert config.gemini_model == 'new-model'
+
+
+def test_wire_schema_excludes_max_items_while_pydantic_enforces_bounds():
+    schema = wire_schema()
+
+    def has_key(obj, key):
+        if isinstance(obj, dict):
+            return key in obj or any(has_key(v, key) for v in obj.values())
+        if isinstance(obj, list):
+            return any(has_key(item, key) for item in obj)
+        return False
+
+    assert not has_key(schema, 'maxItems')
+    assert has_key(schema, 'minItems')
+    assert has_key(schema, 'minLength')
+    assert has_key(schema, 'maxLength')
+
+    with pytest.raises(ValidationError):
+        IntentPlan.model_validate({
+            'actions': [{'type': 'normal_chat'}] * 6,
+            'needs_clarification': False,
+            'clarification_question': None,
+        })
+

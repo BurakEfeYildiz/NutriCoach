@@ -69,12 +69,12 @@ Bu aşamada yalnızca verilen sınırlı güncel özet ve kısa sohbet geçmişi
 
 
 def wire_schema() -> dict:
-    """Gemini accepts anyOf; enforce the stricter discriminated union again locally."""
+    """Gemini accepts anyOf; enforce the stricter discriminated union and array bounds again locally."""
     def convert(value):
         if isinstance(value, list):
             return [convert(item) for item in value]
         if isinstance(value, dict):
-            return {('anyOf' if key == 'oneOf' else key): convert(item) for key, item in value.items() if key not in {'discriminator', 'default'}}
+            return {('anyOf' if key == 'oneOf' else key): convert(item) for key, item in value.items() if key not in {'discriminator', 'default', 'maxItems'}}
         return value
     return convert(IntentPlan.model_json_schema())
 

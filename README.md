@@ -1,6 +1,6 @@
 # NutriCoach
 
-Kalıcı beslenme kayıtları ve Gemini destekli koçluk için adım adım geliştirilen uygulama. **Aşama 3 tamamlandı:** Aşama 2 beslenme veritabanı üzerine resmi Google GenAI SDK, doğrulanan intent/eylemler, kalıcı sohbet, idempotency ve token/hata kayıtları eklendi. Tam bağlam motoru, hafıza, auth ve web arayüzü henüz yok.
+Kalıcı beslenme kayıtları ve Gemini destekli koçluk için adım adım geliştirilen uygulama. **Aşama 4 tamamlandı:** Veritabanı ve Python hesaplamalarına dayalı deterministik Context Engine eklendi (profil, bugün, dün, 7 ve 14 günlük agregasyonlar, kilo trendi, uygunluk seçimi ve token limitleri). Ayrıntılar [Aşama 4 rehberinde](docs/phase4.md). Hafıza (Aşama 5), auth ve web arayüzü henüz yok.
 
 ## Çalıştırma
 

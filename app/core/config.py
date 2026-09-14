@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     gemini_timeout_seconds: int = Field(default=30, ge=1, le=120)
     chat_recent_messages: int = Field(default=10, ge=0, le=20)
     chat_history_chars: int = Field(default=8000, ge=0, le=20000)
+    context_max_today_meals: int = Field(default=15, ge=1, le=50)
+    context_max_weight_logs: int = Field(default=10, ge=1, le=50)
+    context_max_chars: int = Field(default=16000, ge=1000, le=64000)
 
     app_environment: Literal['local', 'production'] = 'production'
     gemini_diagnostics: bool = False

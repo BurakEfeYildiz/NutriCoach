@@ -14,6 +14,7 @@ from app.models.user import utc_now
 from app.schemas.chat import ConversationRead, MessageCreate, MessageRead, MessageResult
 from app.schemas.intents import IntentPlan, NutritionQuestion
 from app.services.chat_actions import ClarificationNeeded, apply_actions
+from app.services.context_service import build_coach_context
 from app.services.gemini_service import GeminiProvider, ProviderError, ProviderResult
 from app.services.nutrition import daily_summary, weekly_summary
 from app.services.users import get_user
@@ -173,11 +174,28 @@ class ChatService:
                 session.commit()  # Effects and durable receipt commit together, before coaching.
                 effects_committed = bool(actions)
             with self.sessions() as session:
-                payload['action_results'] = [action.model_dump() for action in actions]
-                payload['today'] = daily_summary(session, user_id, now=message.created_at).model_dump(mode='json')
+                coach_context = build_coach_context(
+                    session=session,
+                    user_id=user_id,
+                    conversation_id=conversation_id,
+                    message_id=message.id,
+                    current_message=message.content,
+                    now=message.created_at,
+                    plan=plan,
+                    action_results=stored.action_results,
+                    settings=self.settings,
+                )
+                coach_payload = {
+                    'current_user_message': message.content,
+                    'current_message': message.content,
+                    'action_results': [action.model_dump() for action in actions],
+                    'coach_context': coach_context.model_dump(mode='json'),
+                    # Backward compatibility for Phase 3 tests/consumers:
+                    'today': daily_summary(session, user_id, now=message.created_at).model_dump(mode='json'),
+                }
                 if any(isinstance(action, NutritionQuestion) for action in plan.actions):
-                    payload['last_7_days'] = weekly_summary(session, user_id, now=message.created_at).model_dump(mode='json')
-            reply = self.call(user_id, message.id, 'coach', payload)
+                    coach_payload['last_7_days'] = weekly_summary(session, user_id, now=message.created_at).model_dump(mode='json')
+            reply = self.call(user_id, message.id, 'coach', coach_payload)
             return self.finish(user_id, message.id, reply), True
         except ClarificationNeeded as error:
             return self.finish(user_id, message.id, str(error)), True
