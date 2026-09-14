@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import AliasChoices, Field, SecretStr
@@ -18,6 +19,8 @@ class Settings(BaseSettings):
     context_max_today_meals: int = Field(default=15, ge=1, le=50)
     context_max_weight_logs: int = Field(default=10, ge=1, le=50)
     context_max_chars: int = Field(default=16000, ge=1000, le=64000)
+    context_max_memories: int = Field(default=10, ge=1, le=50)
+    memory_min_confidence: Decimal = Field(default=Decimal('0.60'), ge=0, le=1)
 
     app_environment: Literal['local', 'production'] = 'production'
     gemini_diagnostics: bool = False

@@ -12,12 +12,19 @@ def intent(actions=None, **kwargs):
     }), Usage(120, 45, 190))
 
 
+def memory_result(candidates=None):
+    return ProviderResult(json.dumps({
+        'candidates': candidates or [],
+    }), Usage(50, 15, 65))
+
+
 class FakeGeminiProvider:
     model = 'fake-gemini'
 
-    def __init__(self, intents=None, replies=None):
+    def __init__(self, intents=None, replies=None, memories=None):
         self.intents = deque(intents or [intent()])
         self.replies = deque(replies or [ProviderResult('Merhaba, yardımcı olabilirim.', Usage(210, 30, 270))])
+        self.memories = deque(memories or [memory_result()])
         self.calls = []
         self.on_call = None
 
@@ -35,3 +42,7 @@ class FakeGeminiProvider:
 
     def generate_reply(self, payload):
         return self._respond('coach', payload, self.replies)
+
+    def extract_memories(self, payload):
+        return self._respond('memory', payload, self.memories)
+

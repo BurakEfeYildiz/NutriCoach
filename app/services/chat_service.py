@@ -8,14 +8,18 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+import re
+
 from app.core.config import Settings
 from app.models.chat import AIRequest, Conversation, Message
 from app.models.user import utc_now
 from app.schemas.chat import ConversationRead, MessageCreate, MessageRead, MessageResult
 from app.schemas.intents import IntentPlan, NutritionQuestion
+from app.schemas.memory import MemoryExtractionResult
 from app.services.chat_actions import ClarificationNeeded, apply_actions
 from app.services.context_service import build_coach_context
 from app.services.gemini_service import GeminiProvider, ProviderError, ProviderResult
+from app.services.memory_service import deactivate_memory_by_key, persist_candidate, should_extract_memories
 from app.services.nutrition import daily_summary, weekly_summary
 from app.services.users import get_user
 
@@ -173,6 +177,10 @@ class ChatService:
                 stored.action_results = [action.model_dump() for action in actions]
                 session.commit()  # Effects and durable receipt commit together, before coaching.
                 effects_committed = bool(actions)
+            try:
+                self.process_memories(user_id, message.id, message.content)
+            except Exception:
+                pass
             with self.sessions() as session:
                 coach_context = build_coach_context(
                     session=session,
@@ -208,3 +216,36 @@ class ChatService:
         except (ValidationError, HTTPException, SQLAlchemyError):
             content = 'Kayıtlar korundu fakat cevap tamamlanamadı.' if effects_committed else 'İşlemler uygulanamadı; beslenme kayıtlarında değişiklik yapılmadı.'
             return self.finish(user_id, message.id, content, 'action_error'), True
+
+    def process_memories(self, user_id: str, message_id: str, content: str) -> None:
+        lower = content.lower()
+        if 'unut' in lower:
+            match = re.search(r'(?:şunu\s+unut|unut(?:\s*:)?)\s*:?\s*([\wçğıöşü\s]+)', lower)
+            target = match.group(1).strip() if match else lower.replace('unut', '').strip()
+            if target:
+                with self.sessions() as session:
+                    deactivate_memory_by_key(session, user_id, target)
+                    session.commit()
+
+        if not should_extract_memories(content):
+            return
+
+        result = self.provider.extract_memories({'message': content})
+        output = self.redact(result.text)
+        if not output.strip():
+            return
+        parsed = MemoryExtractionResult.model_validate_json(output)
+        if not parsed.candidates:
+            return
+
+        with self.sessions() as session:
+            for candidate in parsed.candidates:
+                persist_candidate(
+                    session,
+                    user_id,
+                    candidate,
+                    source_message_id=message_id,
+                    min_confidence=self.settings.memory_min_confidence,
+                )
+            session.commit()
+

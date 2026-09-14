@@ -38,7 +38,7 @@ def test_adopts_phase1_preserves_file_and_rows(tmp_path):
             assert {name: connection.execute(f'SELECT * FROM {name}').fetchall() for name in before} == before
     upgrade_database(url)  # Re-running is safe.
     with sqlite3.connect(path) as connection:
-        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0003',)
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0004',)
         assert connection.execute('PRAGMA foreign_key_check').fetchall() == []
         assert connection.execute('SELECT calorie_target FROM user_profiles').fetchone() == (2200,)
     with TestClient(create_app(Settings(_env_file=None, database_url=url))) as client:
@@ -52,7 +52,7 @@ def test_fresh_database_and_metadata_match(tmp_path):
     with engine.begin() as connection:
         config = migration_config(); config.attributes['connection'] = connection
         command.check(config)
-        assert {'users', 'user_profiles', 'meals', 'meal_items', 'weight_logs', 'conversations', 'messages', 'ai_requests', 'alembic_version'} == set(inspect(connection).get_table_names())
+        assert {'users', 'user_profiles', 'meals', 'meal_items', 'weight_logs', 'conversations', 'messages', 'ai_requests', 'memories', 'alembic_version'} == set(inspect(connection).get_table_names())
     engine.dispose()
 
 
@@ -105,5 +105,49 @@ def test_phase2_to_chat_preserves_all_nutrition_rows(tmp_path):
         with sqlite3.connect(filename) as connection:
             assert {table: connection.execute(f'SELECT * FROM {table} ORDER BY 1').fetchall() for table in tables} == before
     with sqlite3.connect(path) as connection:
-        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0003',)
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0004',)
         assert connection.execute('PRAGMA foreign_key_check').fetchall() == []
+
+
+def test_migration_0004_upgrade_and_downgrade(tmp_path):
+    path = tmp_path / 'mig0004.db'
+    url = f'sqlite:///{path}'
+    engine, _ = create_database(url)
+    with engine.begin() as connection:
+        config = migration_config()
+        config.attributes['connection'] = connection
+        command.upgrade(config, '0003')
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0003',)
+        tables = [row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        assert 'memories' not in tables
+
+    with engine.begin() as connection:
+        config = migration_config()
+        config.attributes['connection'] = connection
+        command.upgrade(config, '0004')
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0004',)
+        tables = [row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        assert 'memories' in tables
+
+    with engine.begin() as connection:
+        config = migration_config()
+        config.attributes['connection'] = connection
+        command.downgrade(config, '0003')
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0003',)
+        tables = [row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        assert 'memories' not in tables
+
+    with engine.begin() as connection:
+        config = migration_config()
+        config.attributes['connection'] = connection
+        command.upgrade(config, '0004')
+
+    with sqlite3.connect(path) as connection:
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0004',)
+    engine.dispose()

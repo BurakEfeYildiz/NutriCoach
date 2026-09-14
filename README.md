@@ -1,6 +1,6 @@
 # NutriCoach
 
-Kalıcı beslenme kayıtları ve Gemini destekli koçluk için adım adım geliştirilen uygulama. **Aşama 4 tamamlandı:** Veritabanı ve Python hesaplamalarına dayalı deterministik Context Engine eklendi (profil, bugün, dün, 7 ve 14 günlük agregasyonlar, kilo trendi, uygunluk seçimi ve token limitleri). Ayrıntılar [Aşama 4 rehberinde](docs/phase4.md). Hafıza (Aşama 5), auth ve web arayüzü henüz yok.
+Kalıcı beslenme kayıtları ve Gemini destekli koçluk için adım adım geliştirilen uygulama. **Aşama 5 tamamlandı:** Kalıcı, güvenli ve sınırlandırılmış Uzun Vadeli Hafıza (LTM - Long-Term Memory) eklendi (tercihler, sevilmeyenler, rutinler, kısıtlar, ön filtreleme, deduplication, çelişki yönetimi, context entegrasyonu ve hafıza CRUD API). Ayrıntılar [Aşama 5 rehberinde](docs/phase5.md). Auth ve web arayüzü henüz yok.
 
 ## Çalıştırma
 
@@ -49,7 +49,7 @@ Testler geçici SQLite dosyaları kullanır. Migration sırasında dosya ve eski
 
 Kimlik doğrulama henüz yoktur: kullanıcı kimliği erişim yetkisi sağlamaz; API'ye ulaşan biri başka bir kullanıcı kimliğini de kullanabilir. Bu aşama yalnızca yerel geliştirme içindir. İnternete veya yerel ağa açmadan önce kimlik doğrulama ve yetkilendirme eklenecek. Sunucu loopback üzerinde çalıştırılır; izin verilen Host adları da yerel adreslerle sınırlıdır.
 
-Migration akışı: sunucuyu durdur, `python -m app.db.migrate` çalıştır, sonra sunucuyu başlat. Komut mevcut SQLite dosyasını backup API ile yedekler. `0001` eski kullanıcı/profil şemasını doğrulayıp verileri değiştirmeden benimser; `0002` beslenme tablolarını, `0003` sohbet/mesaj/AI istek tablolarını ekler. Mevcut DB'ye körlemesine `alembic stamp head` çalıştırma. `alembic current` sürümü, `alembic check` model/şema farklarını gösterir.
+Migration akışı: sunucuyu durdur, `python -m app.db.migrate` çalıştır, sonra sunucuyu başlat. Komut mevcut SQLite dosyasını backup API ile yedekler. `0001` eski kullanıcı/profil şemasını doğrulayıp verileri değiştirmeden benimser; `0002` beslenme tablolarını, `0003` sohbet/mesaj/AI istek tablolarını, `0004` uzun vadeli hafıza (memories) tablosunu ekler. Mevcut DB'ye körlemesine `alembic stamp head` çalıştırma. `alembic current` sürümü, `alembic check` model/şema farklarını gösterir.
 
 Beslenme endpointleri ve veri sözleşmesi: [Aşama 2 rehberi](docs/phase2.md). Yeni sohbet endpointleri, intent şeması, gerçek Gemini kurulum/testi ve mevcut sınırlar: [Aşama 3 rehberi](docs/phase3.md).
 

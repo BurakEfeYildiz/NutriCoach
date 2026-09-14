@@ -97,6 +97,13 @@ class RecentChatMessageContext(Schema):
     content: str
 
 
+class MemoryContext(Schema):
+    category: str
+    key: str
+    value: str
+    confidence: Decimal | None = None
+
+
 class CoachContext(Schema):
     generated_at: datetime
     timezone: str
@@ -109,4 +116,7 @@ class CoachContext(Schema):
     recent_7_days: PeriodSummaryContext | None = None
     recent_14_days: PeriodSummaryContext | None = None
     weight: WeightContext | None = None
+    memories: list[MemoryContext] = Field(default_factory=list)
+    memory_count_available: int = 0
+    memory_detail_truncated: bool = False
     recent_messages: list[RecentChatMessageContext] = Field(default_factory=list)

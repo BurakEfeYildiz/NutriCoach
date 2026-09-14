@@ -4,17 +4,19 @@ from decimal import Decimal, ROUND_HALF_UP
 import re
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.models.chat import Message
+from app.models.memory import Memory
 from app.models.nutrition import NUTRIENTS
 from app.models.user import User, utc_now
 from app.schemas.context import (
     CoachContext,
     ItemContext,
     MealContext,
+    MemoryContext,
     PeriodSummaryContext,
     ProfileContext,
     RecentChatMessageContext,
@@ -25,6 +27,7 @@ from app.schemas.context import (
 )
 from app.schemas.intents import IntentPlan, MealCreate, MealDelete, MealUpdate, ProfileUpdate, WeightCreate
 from app.schemas.nutrition import Totals
+from app.services.memory_service import list_active_memories
 from app.services.nutrition import local_date, meal_totals, range_meals, summarize_day
 from app.services.users import get_user
 from app.services.weights import list_weights
@@ -82,10 +85,12 @@ def select_relevance(plan: IntentPlan | None, message_text: str) -> tuple[list[s
     if 'profile_goals' in categories:
         sections.add('profile')
         sections.add('today')
+        sections.add('memories')
 
     if 'today_nutrition' in categories:
         sections.add('profile')
         sections.add('today')
+        sections.add('memories')
         if any(term in lower for term in YESTERDAY_TERMS):
             sections.add('yesterday')
 
@@ -95,6 +100,7 @@ def select_relevance(plan: IntentPlan | None, message_text: str) -> tuple[list[s
         sections.add('yesterday')
         sections.add('recent_7_days')
         sections.add('recent_14_days')
+        sections.add('memories')
         if any(term in lower for term in WEIGHT_TERMS):
             sections.add('weight')
 
@@ -102,9 +108,10 @@ def select_relevance(plan: IntentPlan | None, message_text: str) -> tuple[list[s
         sections.add('profile')
         sections.add('weight')
         sections.add('recent_7_days')
+        sections.add('memories')
 
     # Enforce deterministic order
-    canonical_sections = ['profile', 'today', 'yesterday', 'recent_7_days', 'recent_14_days', 'weight', 'recent_messages']
+    canonical_sections = ['profile', 'today', 'yesterday', 'recent_7_days', 'recent_14_days', 'weight', 'memories', 'recent_messages']
     included = [s for s in canonical_sections if s in sections]
     sorted_categories = sorted(categories)
 
@@ -327,6 +334,35 @@ def compute_recent_messages(
     return list(reversed(history))
 
 
+def compute_memories_context(
+    session: Session,
+    user_id: str,
+    categories: list[str],
+    max_memories: int,
+) -> tuple[list[MemoryContext], int, bool]:
+    if categories == ['normal_conversation']:
+        allowed = ['coaching_preference']
+    elif 'weight_progress' in categories and not ('today_nutrition' in categories or 'recent_nutrition' in categories):
+        allowed = ['exercise_routine', 'schedule_routine', 'practical_constraint', 'coaching_preference', 'lifestyle']
+    elif 'today_nutrition' in categories or 'recent_nutrition' in categories:
+        allowed = ['food_preference', 'food_dislike', 'dietary_habit', 'practical_constraint', 'lifestyle']
+    else:
+        allowed = None
+
+    count_query = select(func.count()).select_from(Memory).where(Memory.user_id == user_id, Memory.status == 'active')
+    if allowed:
+        count_query = count_query.where(Memory.category.in_(allowed))
+    total_count = session.scalar(count_query) or 0
+
+    all_active = list_active_memories(session, user_id, categories=allowed, limit=max_memories)
+    truncated = total_count > max_memories
+    return (
+        [MemoryContext(category=m.category, key=m.key, value=m.value, confidence=m.confidence) for m in all_active],
+        total_count,
+        truncated,
+    )
+
+
 def build_coach_context(
     session: Session,
     user_id: str,
@@ -351,6 +387,9 @@ def build_coach_context(
     recent_7_ctx = compute_period_summary(session, user, today - timedelta(days=6), today) if 'recent_7_days' in included_sections else None
     recent_14_ctx = compute_period_summary(session, user, today - timedelta(days=13), today) if 'recent_14_days' in included_sections else None
     weight_ctx = compute_weight_context(session, user, settings.context_max_weight_logs) if 'weight' in included_sections else None
+    memories_list, mem_count, mem_truncated = compute_memories_context(
+        session, user.id, categories, settings.context_max_memories,
+    ) if 'memories' in included_sections else ([], 0, False)
     recent_msgs = compute_recent_messages(
         session, user.id, conversation_id, message_id, now,
         settings.chat_recent_messages, settings.chat_history_chars,
@@ -368,5 +407,8 @@ def build_coach_context(
         recent_7_days=recent_7_ctx,
         recent_14_days=recent_14_ctx,
         weight=weight_ctx,
+        memories=memories_list,
+        memory_count_available=mem_count,
+        memory_detail_truncated=mem_truncated,
         recent_messages=recent_msgs,
     )
