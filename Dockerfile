@@ -17,15 +17,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN groupadd -g 10001 appgroup && \
     useradd -u 10001 -g appgroup -s /bin/bash -m appuser
 
-# Install Python dependencies
+# Install Python dependencies and the application package
 COPY pyproject.toml .
+COPY app/ ./app/
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir .
 
-# Copy application source code and migrations
+# Include the Alembic migration chain in the runtime image
 COPY alembic.ini .
-COPY alembic/ ./alembic/
-COPY app/ ./app/
+COPY migrations/ ./migrations/
 
 # Switch ownership to non-root user
 RUN chown -R appuser:appgroup /app

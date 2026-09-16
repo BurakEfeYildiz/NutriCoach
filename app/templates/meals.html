@@ -1,137 +1,291 @@
 {% extends "base.html" %}
+{% from "components/primitives.html" import icon %}
 
 {% block title %}Öğünler — NutriCoach{% endblock %}
 
 {% block content %}
-<div class="view-container meals-view">
-    <!-- Date Navigation Header -->
+  <div class="view-container meals-view">
+    <header class="page-heading">
+      <span class="eyebrow">BESLENME GÜNLÜĞÜN</span>
+      <h1>Öğünlerin, bir arada.</h1>
+      <p class="page-description">
+        Her kayıt, kendini daha iyi tanımak için bir adım.
+      </p>
+    </header>
+
     <section class="date-nav-bar">
-        <button class="nav-arrow-btn" id="btnPrevDay" aria-label="Önceki Gün">&larr;</button>
-        <div class="date-selector-wrapper">
-            <input type="date" id="selectedDateInput" class="date-picker-input" aria-label="Tarih Seç">
-            <span class="date-display-label" id="dateDisplayLabel">Yükleniyor...</span>
-        </div>
-        <button class="nav-arrow-btn" id="btnNextDay" aria-label="Sonraki Gün">&rarr;</button>
-        <button class="btn btn-sm btn-subtle" id="btnJumpToday">Bugün</button>
+      <button class="nav-arrow-btn" id="btnPrevDay" aria-label="Önceki Gün">
+        {{ icon('arrow') }}
+      </button>
+      <div class="date-selector-wrapper">
+        <input
+          type="date"
+          id="selectedDateInput"
+          class="date-picker-input"
+          aria-label="Tarih Seç"
+        />
+        <span class="date-display-label" id="dateDisplayLabel"
+          >Yükleniyor...</span
+        >
+      </div>
+      <button class="nav-arrow-btn" id="btnNextDay" aria-label="Sonraki Gün">
+        {{ icon('arrow') }}
+      </button>
+      <button class="btn btn-sm btn-ghost" id="btnJumpToday">Bugün</button>
     </section>
 
-    <!-- Day Totals Summary Card -->
     <section class="card day-summary-card" id="daySummaryCard">
-        <div class="day-summary-header">
-            <span class="summary-title">GÜNLÜK TOPLAM</span>
-            <span class="meal-count-badge" id="dayMealCountBadge">0 öğün</span>
+      <div class="day-summary-header">
+        <span class="summary-title">GÜNLÜK TOPLAM</span>
+        <span class="meal-count-badge" id="dayMealCountBadge">0 öğün</span>
+      </div>
+      <div class="day-totals-grid">
+        <div class="total-stat">
+          <span class="stat-num" id="dayTotalCalories">—</span>
+          <span class="stat-unit">kcal</span>
         </div>
-        <div class="day-totals-grid">
-            <div class="total-stat">
-                <span class="stat-num" id="dayTotalCalories">—</span>
-                <span class="stat-unit">kcal</span>
-            </div>
-            <div class="total-stat">
-                <span class="stat-num" id="dayTotalProtein">—</span>
-                <span class="stat-unit">g Protein</span>
-            </div>
-            <div class="total-stat">
-                <span class="stat-num" id="dayTotalCarbs">—</span>
-                <span class="stat-unit">g Karb</span>
-            </div>
-            <div class="total-stat">
-                <span class="stat-num" id="dayTotalFat">—</span>
-                <span class="stat-unit">g Yağ</span>
-            </div>
+        <div class="total-stat">
+          <span class="stat-num" id="dayTotalProtein">—</span>
+          <span class="stat-unit">g Protein</span>
         </div>
+        <div class="total-stat">
+          <span class="stat-num" id="dayTotalCarbs">—</span>
+          <span class="stat-unit">g Karbonhidrat</span>
+        </div>
+        <div class="total-stat">
+          <span class="stat-num" id="dayTotalFat">—</span>
+          <span class="stat-unit">g Yağ</span>
+        </div>
+      </div>
     </section>
 
-    <!-- Action Bar -->
+    <section class="card food-picker" aria-labelledby="foodPickerTitle">
+      <div class="card-header-flex">
+        <div><span class="hero-label">YİYECEK EKLE</span><h2 class="card-headline" id="foodPickerTitle">Ne yedin?</h2></div>
+        <button class="btn btn-secondary btn-sm" id="btnNewCustomFood">Kendi yiyeceğini oluştur</button>
+      </div>
+      <div class="food-entry-tabs" aria-label="Kayıt yöntemi">
+        <span class="badge">Yiyecek ara</span>
+        <button class="btn btn-ghost btn-sm" type="button" id="btnFoodPhoto">{{ icon('camera') }} Fotoğrafla analiz et</button>
+        <input type="file" id="foodPhotoInput" accept="image/jpeg,image/png,image/webp" hidden>
+        <a class="btn btn-ghost btn-sm" href="/coach">{{ icon('coach') }} Koça anlat</a>
+      </div>
+      <form class="food-search-row" id="foodSearchForm">
+        <input class="form-control" id="foodSearchInput" minlength="2" placeholder="Yumurta, yoğurt, muz…" aria-label="Yiyecek ara" required>
+        <label class="external-search-toggle"><input type="checkbox" id="includeExternalFood"> Paketli ürünlerde Open Food Facts’i de ara</label>
+        <button class="btn btn-primary" type="submit">Ara</button>
+      </form>
+      <div class="food-shortcuts">
+        <button class="btn btn-ghost btn-sm" data-food-list="recent">Son kullanılanlar</button>
+        <button class="btn btn-ghost btn-sm" data-food-list="favorites">Favoriler</button>
+        <button class="btn btn-ghost btn-sm" data-food-query="yumurta">Hızlı: Yumurta</button>
+        <button class="btn btn-ghost btn-sm" data-food-query="yoğurt">Hızlı: Yoğurt</button>
+        <button class="btn btn-secondary btn-sm" id="btnQuickExtra" type="button">Ekstra kaydet</button>
+      </div>
+      <p class="footnote-text">Genel yiyeceklerde USDA, paketli ürünlerde topluluk etiketi kullanılır. Seçtiğin porsiyonun besin değeri kaydetmeden önce hesaplanır.</p>
+      <div id="foodSearchResults" class="food-results" aria-live="polite"></div>
+    </section>
+
     <section class="meals-action-bar">
-        <h2 class="section-title">Kayıtlı Öğünler</h2>
-        <button class="btn btn-primary" id="btnAddNewMeal">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span>Öğün Ekle</span>
-        </button>
+      <h2 class="section-title">Kayıtlı Öğünler</h2>
+      <button class="btn btn-primary" id="btnAddNewMeal">
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Öğün Ekle</span>
+      </button>
     </section>
 
-    <!-- Meals List -->
     <section class="meals-list" id="mealsList">
-        <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
     </section>
-</div>
+  </div>
 
-<!-- Add / Edit Meal Modal -->
-<dialog id="modalMealForm" class="app-dialog modal-form-dialog">
+  <dialog
+    id="modalMealForm"
+    class="app-dialog modal-form-dialog"
+    aria-label="İşlem penceresi"
+  >
     <form method="dialog" class="dialog-card" id="formMeal">
-        <input type="hidden" id="editMealId" value="">
-        <input type="hidden" id="editMealVersion" value="1">
-        <div class="dialog-header">
-            <h3 class="dialog-title" id="mealFormTitle">Öğün Ekle</h3>
-            <button type="button" class="dialog-close" id="btnCloseMealForm" aria-label="Kapat">&times;</button>
+      <div class="dialog-header">
+        <h3 class="dialog-title" id="mealFormTitle">Öğün Ekle</h3>
+        <button
+          type="button"
+          class="dialog-close"
+          id="btnCloseMealForm"
+          aria-label="Kapat"
+        >
+          &times;
+        </button>
+      </div>
+      <div class="dialog-body">
+        <div class="form-row-2">
+          <div class="form-field">
+            <label class="form-label" for="inputMealType">Öğün Tipi</label>
+            <select id="inputMealType" class="form-control" required>
+              <option value="breakfast">Kahvaltı</option>
+              <option value="lunch">Öğle Yemeği</option>
+              <option value="dinner">Akşam Yemeği</option>
+              <option value="snack">Ara Öğün</option>
+              <option value="other">Diğer</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="inputMealTime">Saat</label>
+            <input
+              type="time"
+              id="inputMealTime"
+              class="form-control"
+              required
+            />
+          </div>
         </div>
-        <div class="dialog-body">
-            <div class="form-row-2">
-                <div class="form-group">
-                    <label for="inputMealType">Öğün Tipi</label>
-                    <select id="inputMealType" class="form-control" required>
-                        <option value="breakfast">Kahvaltı</option>
-                        <option value="lunch">Öğle Yemeği</option>
-                        <option value="dinner">Akşam Yemeği</option>
-                        <option value="snack">Ara Öğün</option>
-                        <option value="other">Diğer</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="inputMealTime">Saat</label>
-                    <input type="time" id="inputMealTime" class="form-control" required>
-                </div>
-            </div>
 
-            <div class="form-group">
-                <label for="inputMealDescription">Öğün Açıklaması</label>
-                <input type="text" id="inputMealDescription" class="form-control" placeholder="Örn: Haşlanmış yumurta ve peynirli tost" required>
-            </div>
-
-            <div class="items-editor-section">
-                <label class="form-section-label">Öğün İçeriği</label>
-                <div class="form-row-2">
-                    <div class="form-group">
-                        <label for="inputItemName">Yiyecek Adı</label>
-                        <input type="text" id="inputItemName" class="form-control" placeholder="Yiyecek" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputItemQuantity">Miktar & Birim</label>
-                        <div class="input-with-addon">
-                            <input type="number" id="inputItemQuantity" class="form-control" value="1" step="0.1" min="0.01" required>
-                            <input type="text" id="inputItemUnit" class="form-control" value="porsiyon" style="max-width: 90px;" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-row-4">
-                    <div class="form-group">
-                        <label for="inputItemCalories">Kalori</label>
-                        <input type="number" id="inputItemCalories" class="form-control" placeholder="kcal" min="0" step="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputItemProtein">Protein</label>
-                        <input type="number" id="inputItemProtein" class="form-control" placeholder="g" min="0" step="0.1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputItemCarbs">Karb</label>
-                        <input type="number" id="inputItemCarbs" class="form-control" placeholder="g" min="0" step="0.1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputItemFat">Yağ</label>
-                        <input type="number" id="inputItemFat" class="form-control" placeholder="g" min="0" step="0.1" required>
-                    </div>
-                </div>
-            </div>
+        <div class="form-field">
+          <label class="form-label" for="inputMealDescription"
+            >Öğün Açıklaması</label
+          >
+          <input
+            type="text"
+            id="inputMealDescription"
+            class="form-control"
+            placeholder="Örn: Haşlanmış yumurta ve peynirli tost"
+            required
+          />
         </div>
-        <div class="dialog-actions">
-            <button type="button" class="btn btn-secondary" id="btnCancelMealForm">Vazgeç</button>
-            <button type="submit" class="btn btn-primary" id="btnSaveMealForm">Kaydet</button>
+
+        <div class="items-editor-section">
+          <h4 class="form-section-label">Öğün içeriği</h4>
+          <div class="form-row-2">
+            <div class="form-field">
+              <label class="form-label" for="inputItemName">Yiyecek Adı</label>
+              <input
+                type="text"
+                id="inputItemName"
+                class="form-control"
+                placeholder="Yiyecek"
+                required
+              />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="inputItemQuantity"
+                >Miktar ve birim</label
+              >
+              <div class="input-with-addon">
+                <input
+                  type="number"
+                  id="inputItemQuantity"
+                  class="form-control"
+                  value="1"
+                  step="0.01"
+                  min="0.01"
+                  required
+                />
+                <input
+                  type="text"
+                  id="inputItemUnit"
+                  class="form-control"
+                  value="porsiyon"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row-4">
+            <div class="form-field">
+              <label class="form-label" for="inputItemCalories">Kalori</label>
+              <input
+                type="number"
+                id="inputItemCalories"
+                class="form-control"
+                placeholder="kcal"
+                min="0"
+                step="1"
+                required
+              />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="inputItemProtein">Protein</label>
+              <input
+                type="number"
+                id="inputItemProtein"
+                class="form-control"
+                placeholder="g"
+                min="0"
+                step="0.1"
+                required
+              />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="inputItemCarbs"
+                >Karbonhidrat</label
+              >
+              <input
+                type="number"
+                id="inputItemCarbs"
+                class="form-control"
+                placeholder="g"
+                min="0"
+                step="0.1"
+                required
+              />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="inputItemFat">Yağ</label>
+              <input
+                type="number"
+                id="inputItemFat"
+                class="form-control"
+                placeholder="g"
+                min="0"
+                step="0.1"
+                required
+              />
+            </div>
+          </div>
         </div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-secondary" id="btnCancelMealForm">
+          Vazgeç
+        </button>
+        <button type="submit" class="btn btn-primary" id="btnSaveMealForm">
+          Kaydet
+        </button>
+      </div>
     </form>
-</dialog>
+  </dialog>
+
+  <dialog id="modalFoodLog" class="app-dialog modal-form-dialog">
+    <form method="dialog" class="dialog-card" id="formFoodLog">
+      <div class="dialog-header"><h3 class="dialog-title" id="foodLogTitle">Yiyecek ekle</h3><button type="button" class="dialog-close" data-close-food-log aria-label="Pencereyi kapat">&times;</button></div>
+      <div class="dialog-body">
+        <div class="form-row-2"><div class="form-field"><label class="form-label" for="foodLogQuantity">Miktar</label><input id="foodLogQuantity" class="form-control" type="number" value="100" min="0.01" step="0.01" required></div><div class="form-field"><label class="form-label" for="foodLogMeasure">Birim / porsiyon</label><select id="foodLogMeasure" class="form-control" required></select></div></div>
+        <div class="form-field"><label class="form-label" for="foodLogMealType">Kategori</label><select id="foodLogMealType" class="form-control"><option value="breakfast">Kahvaltı</option><option value="lunch">Öğle</option><option value="dinner">Akşam</option><option value="snack">Ara öğün</option><option value="extra">Ekstra</option><option value="other">Diğer</option></select></div>
+        <div class="food-preview" id="foodLogPreview">Miktarı seçerek besin değerlerini önizle.</div>
+      </div>
+      <div class="dialog-actions"><button type="button" class="btn btn-secondary" data-close-food-log>Vazgeç</button><button type="submit" class="btn btn-primary">Günlüğe ekle</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="modalCustomFood" class="app-dialog modal-form-dialog">
+    <form method="dialog" class="dialog-card" id="formCustomFood">
+      <div class="dialog-header"><h3 class="dialog-title">Kendi yiyeceğini oluştur</h3><button type="button" class="dialog-close" data-close-custom aria-label="Kapat">&times;</button></div>
+      <div class="dialog-body"><div class="form-field"><label class="form-label" for="customFoodName">Ad</label><input id="customFoodName" class="form-control" required maxlength="240"></div><p class="footnote-text">Değerleri 100 gram için gir.</p><div class="form-row-4"><div class="form-field"><label class="form-label" for="customFoodCalories">Kalori (kcal)</label><input id="customFoodCalories" class="form-control" type="number" min="0" step="0.01" required></div><div class="form-field"><label class="form-label" for="customFoodProtein">Protein (g)</label><input id="customFoodProtein" class="form-control" type="number" min="0" step="0.01" required></div><div class="form-field"><label class="form-label" for="customFoodCarbs">Karbonhidrat (g)</label><input id="customFoodCarbs" class="form-control" type="number" min="0" step="0.01" required></div><div class="form-field"><label class="form-label" for="customFoodFat">Yağ (g)</label><input id="customFoodFat" class="form-control" type="number" min="0" step="0.01" required></div></div></div>
+      <div class="dialog-actions"><button type="button" class="btn btn-secondary" data-close-custom>Vazgeç</button><button type="submit" class="btn btn-primary">Oluştur</button></div>
+    </form>
+  </dialog>
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/meals.js"></script>
+  <script src="/static/js/meals.js?v=finalqa4"></script>
 {% endblock %}

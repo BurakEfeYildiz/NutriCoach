@@ -3,103 +3,205 @@
 {% block title %}İlerleme — NutriCoach{% endblock %}
 
 {% block content %}
-<div class="view-container progress-view">
-    <!-- Weight Summary Card -->
+  <div class="view-container progress-view">
+    <header class="page-heading">
+      <span class="eyebrow">KENDİ RİTMİNDE</span>
+      <h1>Değişimi fark et.</h1>
+      <p class="page-description">
+        Tek bir sayıdan fazlası: zaman içindeki yolculuğun.
+      </p>
+    </header>
     <section class="card weight-hero-card">
-        <div class="card-header-flex">
-            <div>
-                <span class="hero-label">KİLO TAKİBİ</span>
-                <h1 class="card-headline">Vücut Ağırlığı</h1>
-            </div>
-            <button class="btn btn-primary btn-sm" id="btnOpenAddWeight">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                <span>Kilo Gir</span>
-            </button>
+      <div class="card-header-flex">
+        <div>
+          <span class="hero-label">KİLO TAKİBİ</span>
+          <h2 class="card-headline">Hedefe doğru</h2>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btnOpenAddWeight">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Kilo Gir</span>
+        </button>
+      </div>
+
+      <div class="weight-metrics-row">
+        <div class="weight-main-stat">
+          <span class="weight-display-val" id="currentWeightVal">—</span>
+          <span class="weight-display-unit">kg</span>
+          <span class="trend-pill" id="weightTrendPill">Veri bekleniyor</span>
         </div>
 
-        <div class="weight-metrics-row">
-            <div class="weight-main-stat">
-                <span class="weight-display-val" id="currentWeightVal">—</span>
-                <span class="weight-display-unit">kg</span>
-                <span class="trend-pill" id="weightTrendPill">Veri bekleniyor</span>
-            </div>
-
-            <div class="weight-meta-stats">
-                <div class="stat-box">
-                    <span class="stat-box-label">Hedef Kilo</span>
-                    <span class="stat-box-val" id="goalWeightVal">—</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-box-label">Son Değişim</span>
-                    <span class="stat-box-val" id="weightDeltaVal">—</span>
-                </div>
-            </div>
+        <div class="weight-meta-stats">
+          <div class="stat-box">
+            <span class="stat-box-label">Kilo eğilimi</span>
+            <span class="stat-box-val" id="trendWeightVal">—</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-label">Hedef Kilo</span>
+            <span class="stat-box-val" id="goalWeightVal">—</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-label">Hedefe kalan</span>
+            <span class="stat-box-val" id="remainingWeightVal">—</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-label">Haftalık eğilim değişimi</span>
+            <span class="stat-box-val" id="weightDeltaVal">—</span>
+          </div>
         </div>
+      </div>
 
-        <!-- Native SVG Weight Chart -->
-        <div class="chart-container" id="chartContainer">
-            <div class="chart-placeholder" id="chartPlaceholder">Kilo grafiği için en az bir ölçüm gereklidir.</div>
-            <svg id="weightSvgChart" class="weight-svg-chart" viewBox="0 0 600 220" preserveAspectRatio="none" style="display: none;"></svg>
+      <div class="chart-container" id="chartContainer">
+        <div class="chart-placeholder" id="chartPlaceholder">
+          Kilo grafiği için en az bir ölçüm gereklidir.
         </div>
+        <svg
+          id="weightSvgChart"
+          class="initially-hidden weight-svg-chart"
+          viewBox="0 0 600 220"
+          preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label="Tarihe göre kilo ölçümleri"
+        ></svg>
+      </div>
+      <p class="form-help" id="adaptiveWeightTrend">Yumuşatılmış eğilim ölçümlerden hesaplanır; tartının gösterdiği kilo değildir.</p>
     </section>
 
-    <!-- 7-Day Nutrition Adherence Summary -->
+    <div class="progress-intelligence-grid">
+      <section class="card adaptive-summary-card" aria-labelledby="paceTitle">
+        <span class="eyebrow">KİŞİSEL RİTMİN</span><h2 class="section-title" id="paceTitle">Plan ve eğilim</h2>
+        <dl class="adaptive-facts"><div><dt>Planlanan hız</dt><dd id="plannedPace">—</dd></div><div><dt>Gerçek eğilim hızı</dt><dd id="actualPace">Yeterli ölçüm yok</dd></div><div><dt>Planlanan hedef aralığı</dt><dd id="plannedEta">—</dd></div><div><dt>Eğilime göre aralık</dt><dd id="trendEta">Yeterli ölçüm yok</dd></div></dl>
+        <p id="adaptiveExpenditure" class="muted">Enerji harcaması tahmini yükleniyor…</p>
+      </section>
+      <section class="card adaptive-summary-card" aria-labelledby="consistencyTitle">
+        <span class="eyebrow">DÜZENLİ FARKINDALIK</span><h2 class="section-title" id="consistencyTitle">Kayıt tutarlılığı</h2>
+        <div class="consistency-metrics"><div><strong id="loggingStreak">—</strong><span>günlük seri</span></div><div><strong id="consistencyRate">—</strong><span>son 14 gün</span></div></div>
+        <p id="consistencyExplanation" class="muted">Eksik bir gün bütün ilerlemeyi silmez.</p>
+        <div id="achievementList" class="achievement-list" aria-label="Başarılar"></div>
+      </section>
+    </div>
+
+    <section class="card activity-card">
+      <div class="card-header-flex"><div><span class="hero-label">BUGÜNKÜ HAREKET</span><h2 class="card-headline">Aktivite</h2></div><div class="row"><button class="btn btn-secondary btn-sm" id="btnAddSteps">Adım gir</button><button class="btn btn-primary btn-sm" id="btnAddWorkout">Egzersiz ekle</button></div></div>
+      <div class="weekly-stats-grid"><div class="weekly-stat"><span class="wstat-label">Adım</span><span class="wstat-value" id="todaySteps">—</span></div><div class="weekly-stat"><span class="wstat-label">Egzersiz süresi</span><span class="wstat-value" id="todayWorkoutMinutes">—</span></div><div class="weekly-stat"><span class="wstat-label">Tahmini aktivite enerjisi</span><span class="wstat-value" id="todayActivityCalories">—</span></div></div>
+      <p class="footnote-text">Aktivite enerjisi tahminidir; günlük beslenme hedefine otomatik eklenmez.</p>
+      <div id="todayWorkouts" class="weight-logs-list"></div>
+    </section>
+
     <section class="card nutrition-summary-card">
-        <div class="card-header-flex">
-            <div>
-                <span class="hero-label">7 GÜNLÜK BESLENME</span>
-                <h2 class="card-headline">Haftalık Uyum</h2>
-            </div>
-            <span class="badge" id="recordedDaysBadge">— gün kayıtlı</span>
+      <div class="card-header-flex">
+        <div>
+          <span class="hero-label">7 GÜNLÜK BESLENME</span>
+          <h2 class="card-headline">Haftaya bakış</h2>
         </div>
+        <span class="badge" id="recordedDaysBadge">— gün kayıtlı</span>
+      </div>
 
-        <div class="weekly-stats-grid">
-            <div class="weekly-stat">
-                <span class="wstat-label">Kayıtlı Günler Ortalaması</span>
-                <span class="wstat-value" id="weeklyAvgCalories">— kcal</span>
-            </div>
-            <div class="weekly-stat">
-                <span class="wstat-label">Eksik Gün Sayısı</span>
-                <span class="wstat-value" id="weeklyMissingDays">— gün</span>
-            </div>
+      <div class="weekly-stats-grid">
+        <div class="weekly-stat">
+          <span class="wstat-label">Yeterli Kayıt Günleri Ortalaması</span>
+          <span class="wstat-value" id="weeklyAvgCalories">— kcal</span>
         </div>
-        <p class="footnote-text">* Eksik günler sıfır kalori olarak sayılmaz; yalnızca kayıt girilen günlerin ortalaması alınır.</p>
+        <div class="weekly-stat">
+          <span class="wstat-label">Eksik Gün Sayısı</span>
+          <span class="wstat-value" id="weeklyMissingDays">— gün</span>
+        </div>
+      </div>
+      <div
+        class="weekly-chart"
+        id="weeklyChart"
+        aria-label="Son yedi günün kalori kayıtları"
+      ></div>
+      <p class="footnote-text">
+        Eksik günler sıfır kalori sayılmaz. Haftalık değerlendirme yalnızca yeterli görünen kayıt günlerini kullanır.
+      </p>
     </section>
+    <section class="card weekly-review-card" aria-labelledby="weeklyReviewTitle"><div class="card-header-flex"><div><span class="eyebrow">SON 7 GÜN</span><h2 class="card-headline" id="weeklyReviewTitle">Haftalık değerlendirme</h2></div><a href="/coach" id="weeklyCoachLink" class="btn btn-secondary btn-sm" data-coach-draft="Bu haftaki beslenme ve kilo eğilimimi değerlendirir misin?">Koçla yorumla</a></div><p id="adaptiveWeekly" class="muted">Değerlendirme yükleniyor…</p><div class="weekly-review-metrics"><div><span>Yeterli kayıt</span><strong id="reviewUsableDays">—</strong></div><div><span>Ortalama enerji</span><strong id="reviewCalories">—</strong></div><div><span>Protein hedefi</span><strong id="reviewProtein">—</strong></div><div><span>Aktivite</span><strong id="reviewActivity">—</strong></div></div><p id="adaptiveTargetSuggestion" class="form-help"></p></section>
 
-    <!-- Weight Logs History -->
     <section class="weight-history-section">
-        <h2 class="section-title">Geçmiş Ölçümler</h2>
-        <div class="weight-logs-list" id="weightLogsList">
-            <div class="skeleton-card"></div>
-        </div>
+      <h2 class="section-title">Geçmiş Ölçümler</h2>
+      <div class="weight-logs-list" id="weightLogsList">
+        <div class="skeleton-card"></div>
+      </div>
     </section>
-</div>
+  </div>
 
-<!-- Modal Log Weight -->
-<dialog id="modalProgressWeight" class="app-dialog modal-form-dialog">
+  <dialog
+    id="modalProgressWeight"
+    class="app-dialog modal-form-dialog"
+    aria-label="İşlem penceresi"
+  >
     <form method="dialog" class="dialog-card" id="formProgressWeight">
-        <div class="dialog-header">
-            <h3 class="dialog-title">Kilo Kaydet</h3>
-            <button type="button" class="dialog-close" id="btnCloseProgressWeight" aria-label="Kapat">&times;</button>
+      <div class="dialog-header">
+        <h3 class="dialog-title">Kilo Kaydet</h3>
+        <button
+          type="button"
+          class="dialog-close"
+          id="btnCloseProgressWeight"
+          aria-label="Kapat"
+        >
+          &times;
+        </button>
+      </div>
+      <div class="dialog-body">
+        <div class="form-field">
+          <label class="form-label" for="inputProgressWeightKg"
+            >Kilo (kg)</label
+          >
+          <input
+            type="number"
+            id="inputProgressWeightKg"
+            class="form-control"
+            placeholder="75.5"
+            step="0.05"
+            min="10"
+            max="500"
+            required
+          />
         </div>
-        <div class="dialog-body">
-            <div class="form-group">
-                <label for="inputProgressWeightKg">Kilo (kg)</label>
-                <input type="number" id="inputProgressWeightKg" class="form-control" placeholder="75.5" step="0.05" min="10" max="500" required>
-            </div>
-            <div class="form-group">
-                <label for="inputProgressWeightTime">Tarih & Saat</label>
-                <input type="datetime-local" id="inputProgressWeightTime" class="form-control" required>
-            </div>
+        <div class="form-field">
+          <label class="form-label" for="inputProgressWeightTime"
+            >Tarih ve saat</label
+          >
+          <input
+            type="datetime-local"
+            id="inputProgressWeightTime"
+            class="form-control"
+            required
+          />
         </div>
-        <div class="dialog-actions">
-            <button type="button" class="btn btn-secondary" id="btnCancelProgressWeight">Vazgeç</button>
-            <button type="submit" class="btn btn-primary" id="btnSubmitProgressWeight">Kaydet</button>
-        </div>
+      </div>
+      <div class="dialog-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          id="btnCancelProgressWeight"
+        >
+          Vazgeç
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          id="btnSubmitProgressWeight"
+        >
+          Kaydet
+        </button>
+      </div>
     </form>
-</dialog>
+  </dialog>
+  <dialog id="modalSteps" class="app-dialog modal-form-dialog"><form method="dialog" class="dialog-card" id="formSteps"><div class="dialog-header"><h3 class="dialog-title">Bugünkü adım</h3><button type="button" class="dialog-close" data-close-steps aria-label="Pencereyi kapat">&times;</button></div><div class="dialog-body"><div class="form-field"><label class="form-label" for="inputSteps">Adım sayısı</label><input id="inputSteps" class="form-control" type="number" min="0" max="500000" required></div></div><div class="dialog-actions"><button type="button" class="btn btn-secondary" data-close-steps>Vazgeç</button><button class="btn btn-primary" type="submit">Kaydet</button></div></form></dialog>
+  <dialog id="modalWorkout" class="app-dialog modal-form-dialog"><form method="dialog" class="dialog-card" id="formWorkout"><div class="dialog-header"><h3 class="dialog-title">Egzersiz ekle</h3><button type="button" class="dialog-close" data-close-workout aria-label="Pencereyi kapat">&times;</button></div><div class="dialog-body"><div class="form-row-2"><div class="form-field"><label class="form-label" for="workoutType">Tür</label><select id="workoutType" class="form-control"><option value="walking">Yürüyüş</option><option value="running">Koşu</option><option value="cycling">Bisiklet</option><option value="strength">Kuvvet</option><option value="swimming">Yüzme</option><option value="yoga">Yoga</option><option value="other">Diğer</option></select></div><div class="form-field"><label class="form-label" for="workoutIntensity">Yoğunluk</label><select id="workoutIntensity" class="form-control"><option value="light">Hafif</option><option value="moderate" selected>Orta</option><option value="vigorous">Yüksek</option></select></div></div><div class="form-field"><label class="form-label" for="workoutDuration">Süre (dakika)</label><input id="workoutDuration" class="form-control" type="number" min="1" max="1440" required></div></div><div class="dialog-actions"><button type="button" class="btn btn-secondary" data-close-workout>Vazgeç</button><button class="btn btn-primary" type="submit">Kaydet</button></div></form></dialog>
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/progress.js"></script>
+  <script src="/static/js/progress.js?v=finalqa4"></script>
 {% endblock %}

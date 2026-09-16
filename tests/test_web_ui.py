@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 import pytest
+import re
 
 from app.core.config import Settings
 from app.db.migrate import upgrade_database
@@ -34,6 +35,19 @@ def authenticated_web_client(web_client):
         },
     )
     assert reg.status_code == 201
+    page = web_client.get("/onboarding")
+    csrf = re.search(r'<meta name="csrf-token" content="([^"]+)"', page.text).group(1)
+    completed = web_client.put(
+        "/api/v1/me/onboarding",
+        headers={"X-CSRF-Token": csrf},
+        json={
+            "birth_date": "1990-01-01", "biological_sex": "male", "height_cm": "180",
+            "current_weight_kg": "80", "target_weight_kg": "75", "goal_type": "lose",
+            "activity_level": "moderate", "training_frequency": "three_four",
+            "pace_percent_per_week": "0.50", "pregnancy_or_breastfeeding": False,
+        },
+    )
+    assert completed.status_code == 200
     return web_client
 
 
@@ -55,7 +69,8 @@ def test_pages_return_200_html(authenticated_web_client, web_client):
         ("/coach", "Koç"),
         ("/meals", "Öğünler"),
         ("/progress", "İlerleme"),
-        ("/profile", "Profil"),
+        ("/profile", "Beslenme planım"),
+        ("/account", "Hesabım"),
     ]
     for path, expected_text in pages:
         resp = authenticated_web_client.get(path, follow_redirects=True)
@@ -87,6 +102,8 @@ def test_static_assets_resolve(web_client):
         ("/static/js/meals.js", "javascript"),
         ("/static/js/progress.js", "javascript"),
         ("/static/js/profile.js", "javascript"),
+        ("/static/js/account.js", "javascript"),
+        ("/static/js/onboarding.js", "javascript"),
     ]
     for path, expected_mime in assets:
         resp = web_client.get(path)

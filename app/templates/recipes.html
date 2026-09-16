@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "components/primitives.html" import icon %}
+{% block title %}Tarifler — NutriCoach{% endblock %}
+{% block content %}
+<div class="view-container recipes-view">
+  <header class="page-heading recipes-heading"><div><span class="eyebrow">SANA UYGUN SEÇENEKLER</span><h1>Bugün ne yiyebilirsin?</h1><p class="page-description">Besin değerleri malzemelerden hesaplanır. Kalan hedef yalnızca bugünkü kayıtların ve planın varsa yorumlanır.</p></div><span class="recipes-heading-mark" aria-hidden="true">{{ icon('recipes') }}</span></header>
+  <section class="card recipe-preferences" aria-labelledby="exclusionsTitle">
+    <h2 class="section-title" id="exclusionsTitle">Beslenme dışında tuttukların</h2>
+    <p class="muted">Alerji, intolerans veya tüketmediğin yiyecekleri virgülle ayırarak yaz. Kayıtlı tercihler önerilerden çıkarılır.</p>
+    <form id="dietaryExclusionsForm" class="recipe-exclusions-form"><label for="dietaryExclusions" class="form-label">Hariç tutulacak yiyecekler</label><input id="dietaryExclusions" class="form-control" type="text" placeholder="Örn: süt, badem" maxlength="800"><button class="btn btn-secondary" type="submit">Tercihleri kaydet</button></form>
+  </section>
+  <section class="recipe-recommendations" aria-labelledby="recipeRecommendationsTitle"><div class="section-header-flex"><div><span class="eyebrow">SANA GÖRE</span><h2 class="section-title" id="recipeRecommendationsTitle">Önerilen tarifler</h2></div><a class="link-subtle" href="/meals">Bugünkü kayıtların {{ icon('arrow') }}</a></div><div class="recipe-filters" role="group" aria-label="Öğün türüne göre tarifler"><button class="chip active" type="button" data-recipe-filter="" aria-pressed="true">Tümü</button><button class="chip" type="button" data-recipe-filter="öğle" aria-pressed="false">Öğle</button><button class="chip" type="button" data-recipe-filter="akşam" aria-pressed="false">Akşam</button><button class="chip" type="button" data-recipe-filter="ara öğün" aria-pressed="false">Ara öğün</button></div><div id="recipeRecommendations" class="recipe-grid" aria-live="polite"><div class="skeleton-card"></div><div class="skeleton-card"></div></div></section>
+  <section class="card recipe-detail" id="recipeDetail" aria-labelledby="recipeDetailTitle" hidden><div class="card-header-flex"><div><span class="eyebrow">TARİF DETAYI</span><h2 class="section-title" id="recipeDetailTitle">Tarif</h2></div><button id="closeRecipeDetail" class="btn btn-ghost btn-sm" type="button">Kapat</button></div><div id="recipeDetailBody"></div></section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/js/recipes.js?v=finalqa4"></script>{% endblock %}

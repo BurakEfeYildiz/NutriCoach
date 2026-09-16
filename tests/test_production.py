@@ -1,5 +1,9 @@
 """Production readiness, configuration hardening, and cloud deployment tests."""
 
+import sqlite3
+from datetime import datetime, timezone
+from decimal import Decimal
+
 import pytest
 from pydantic import ValidationError
 from starlette.testclient import TestClient
@@ -7,7 +11,9 @@ from starlette.testclient import TestClient
 from app.core.config import Settings
 from app.db.database import normalize_database_url, get_engine_options
 from app.main import app
-from app.scripts.migrate_sqlite_to_pg import migrate_data
+from app.db.migrate import upgrade_database
+from app.db.database import create_database
+from app.scripts.migrate_sqlite_to_pg import migrate_data, normalize_source_row
 
 
 def test_production_settings_rejects_default_secrets():
@@ -93,6 +99,7 @@ def test_postgresql_engine_pool_options():
 
 
 def test_auth_rate_limiting():
+    app.state.auth_rate_limit_enabled = True
     if hasattr(app.state, "auth_request_history"):
         app.state.auth_request_history.clear()
 
@@ -116,11 +123,29 @@ def test_auth_rate_limiting():
 
     if hasattr(app.state, "auth_request_history"):
         app.state.auth_request_history.clear()
+    app.state.auth_rate_limit_enabled = False
 
 
-def test_migrate_script_dry_run():
-    # Calling migrate_data in dry_run mode on local sqlite database
-    # ensures it connects, reads counts, and exits safely without modifying target
-    stats = migrate_data(sqlite_url="sqlite:///./nutricoach.db", pg_url="sqlite:///./nutricoach.db", dry_run=True)
+def test_migrate_script_dry_run(tmp_path):
+    path = tmp_path / "source.db"
+    url = f"sqlite:///{path}"
+    upgrade_database(url)
+    with sqlite3.connect(path) as connection:
+        connection.execute("INSERT INTO users (id, name, email, timezone, created_at) VALUES ('qa-user', 'QA', 'qa@example.com', 'Europe/Istanbul', '2026-09-01 00:00:00')")
+    before = path.read_bytes()
+    stats = migrate_data(sqlite_url=url, pg_url=url, dry_run=True)
     assert isinstance(stats, dict)
-    assert "users" in stats
+    assert stats["users"] == 1
+    assert path.read_bytes() == before
+
+
+def test_pg_transfer_normalizes_sqlite_amounts_and_utc_times():
+    engine, _ = create_database("sqlite:///:memory:")
+    try:
+        item = normalize_source_row("meal_items", {"quantity": 15000, "calories": 25000, "protein_g": 3500}, engine.dialect)
+        assert item == {"quantity": Decimal("150.00"), "calories": Decimal("250.00"), "protein_g": Decimal("35.00")}
+        weight = normalize_source_row("weight_logs", {"weight_kg": 7180, "occurred_at": datetime(2026, 9, 1, 22, 30)}, engine.dialect)
+        assert weight["weight_kg"] == Decimal("71.80")
+        assert weight["occurred_at"] == datetime(2026, 9, 1, 22, 30, tzinfo=timezone.utc)
+    finally:
+        engine.dispose()

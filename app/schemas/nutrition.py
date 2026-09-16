@@ -8,7 +8,7 @@ from app.schemas.user import Schema
 
 Nonnegative = Annotated[Decimal, Field(ge=0, le=1000000, max_digits=12, decimal_places=2)]
 Positive = Annotated[Decimal, Field(gt=0, le=1000000, max_digits=12, decimal_places=2)]
-Source = Literal['manual', 'label', 'estimate', 'user_corrected']
+Source = Literal['manual', 'label', 'estimate', 'user_corrected', 'usda', 'open_food_facts', 'user', 'structured', 'ai_estimate', 'photo_estimate']
 
 
 class ItemWrite(Schema):
@@ -28,11 +28,16 @@ class ItemRead(ItemWrite):
     id: str
     user_id: str
     meal_id: str
+    food_id: str | None = None
+    food_portion_id: str | None = None
+    food_source: str | None = None
+    source_food_id: str | None = None
+    portion_label: str | None = None
 
 
 class MealWrite(Schema):
     occurred_at: AwareDatetime
-    meal_type: Literal['breakfast', 'lunch', 'dinner', 'snack', 'other'] = 'other'
+    meal_type: Literal['breakfast', 'lunch', 'dinner', 'snack', 'extra', 'other'] = 'other'
     original_description: str = Field(min_length=1, max_length=4000)
     normalized_description: str | None = Field(default=None, max_length=4000)
     nutrition_source: Source = 'manual'

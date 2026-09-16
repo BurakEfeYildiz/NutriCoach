@@ -1,10 +1,10 @@
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Annotated, Literal, Union
 
 from pydantic import AwareDatetime, Field, model_validator
 
 from app.schemas.nutrition import MealWrite, Positive, WeightWrite
-from app.schemas.user import ProfileWrite, Schema
+from app.schemas.user import ActivityLevel, GoalType, Schema, TrainingFrequency
 
 
 class MealExtraction(MealWrite):
@@ -51,11 +51,23 @@ class WeightCreate(Schema):
     weight: WeightExtraction
 
 
-class ProfilePatch(ProfileWrite):
+class ProfilePatch(Schema):
+    birth_date: date | None = None
+    biological_sex: Literal["female", "male"] | None = None
+    height_cm: float | None = Field(default=None, ge=100, le=250)
+    goal_weight_kg: float | None = Field(default=None, ge=25, le=400)
+    activity_level: ActivityLevel | None = None
+    goal_type: GoalType | None = None
+    training_frequency: TrainingFrequency | None = None
+    pace_percent_per_week: float | None = Field(default=None, ge=0, le=0.75)
+    pregnancy_or_breastfeeding: bool | None = None
+
     @model_validator(mode='after')
     def nonempty(self):
         if not self.model_fields_set:
             raise ValueError('En az bir profil alanı gerekli.')
+        if self.birth_date and self.birth_date > datetime.now(timezone.utc).date():
+            raise ValueError('Doğum tarihi gelecekte olamaz.')
         return self
 
 

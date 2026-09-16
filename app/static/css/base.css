@@ -1,0 +1,156 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+main, section, article, aside, header, footer, nav, .card, .view-container, .page-content { min-width: 0; }
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--header-height);
+}
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height);
+  -webkit-font-smoothing: antialiased;
+}
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+h1,
+h2,
+h3,
+h4 {
+  line-height: var(--line-heading);
+  font-weight: var(--font-semibold);
+  text-wrap: balance;
+}
+h1 {
+  font-size: clamp(1.75rem, 2.7vw, 2.25rem);
+  letter-spacing: var(--tracking-heading);
+}
+h2 {
+  font-size: var(--font-size-xl);
+  letter-spacing: -0.025em;
+}
+h3 {
+  font-size: var(--font-size-lg);
+}
+p,
+span,
+a,
+label,
+h1,
+h2,
+h3,
+h4 {
+  overflow-wrap: anywhere;
+}
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: none;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+img {
+  max-width: 100%;
+  display: block;
+}
+svg {
+  display: block;
+}
+button svg,
+a svg,
+.icon,
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+button svg,
+a svg {
+  pointer-events: none;
+}
+input,
+select,
+textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+textarea {
+  resize: vertical;
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+ul,
+ol {
+  padding-left: var(--space-6);
+}
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+}
+[hidden] {
+  display: none;
+}
+.skip-link {
+  position: fixed;
+  left: var(--space-4);
+  top: -100px;
+  z-index: 100;
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+.skip-link:focus {
+  top: var(--space-4);
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

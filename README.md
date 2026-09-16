@@ -31,9 +31,10 @@ docker run -p 8080:8080 -e APP_ENV=development nutricoach
 ## Kullanım
 Web tarayıcınızdan http://127.0.0.1:8000/ adresini açtığınızda:
 - Oturumunuz yoksa güvenli `/login` ekranına yönlendirilirsiniz.
-- `/register` sayfasından yeni hesap oluşturabilir ve doğrudan giriş yapabilirsiniz.
+- `/register` sayfasından kısa hesap kaydını tamamlar, ardından beş adımlı kişiselleştirme akışına geçersiniz.
 - Giriş sonrasında oturum token'ı `HttpOnly`, `SameSite=Lax` cookie (`nutricoach_session`) olarak taşınır. Üretim ortamında (`APP_ENV=production`) `Secure` bayrağı zorunludur.
-- Dashboard, Koç Sohbeti, Öğünler, İlerleme ve Profil sayfaları kullanıcı bazlı izole çalışır.
+- Dashboard, Koç Sohbeti, Öğünler, İlerleme, Beslenme Planım ve Hesabım sayfaları kullanıcı bazlı izole çalışır.
+- Kalori ve makro hedefleri Python servisinde deterministik hesaplanır; güncel kilo her zaman son `weight_log` kaydından gelir. Ayrıntılar [Product V2 Sprint 1 belgesindedir](docs/product-v2.md).
 - **Fotoğraftan Öğün Analizi**: Koç sayfasındaki kamera butonundan veya Bugün sayfasındaki "Fotoğraftan Ekle" butonundan yemek fotoğrafı yükleyebilir, AI tahminlerini inceleyip düzenledikten sonra öğün olarak kaydedebilirsiniz. Fotoğraflar sunucuda veya veritabanında ASLA saklanmaz.
 - **Web-aware Koç**: Koça zincir restoran/kahve markaları veya güncel beslenme bilgileri sorduğunuzda yanıtlar Google Arama ile doğrulanır ve kaynak bağlantılarıyla sunulur.
 
@@ -48,7 +49,7 @@ Ayrıca Swagger `/docs` ekranından doğrudan API kullanılabilir:
 python -m pytest -q
 ```
 
-Testler geçici SQLite dosyaları kullanır. **164 test** ile şifreleme (Argon2id), session token yönetimi, CSRF koruması, kullanıcı izolasyonu (A ve B kullanıcıları), fotoğraf analizi/doğrulaması, Google arama grounding, idempotency, üretim ayarları doğrulaması (fail-fast), PostgreSQL bağlantı havuzu ve auth rate limiting doğrulanır.
+Testler geçici SQLite dosyaları kullanır. **200 test** ile onboarding ve hedef motoru, yiyecek/aktivite verileri, uyarlanabilir analitik, tarifler, şifreleme (Argon2id), session token yönetimi, CSRF koruması, kullanıcı izolasyonu (A ve B kullanıcıları), fotoğraf analizi/doğrulaması, Google arama grounding, idempotency, üretim ayarları doğrulaması (fail-fast), PostgreSQL bağlantı havuzu ve auth rate limiting doğrulanır.
 
 ## Güvenlik ve Mimari
 
@@ -60,10 +61,15 @@ Testler geçici SQLite dosyaları kullanır. **164 test** ile şifreleme (Argon2
 - **Üretim Sertleştirmesi (`APP_ENV=production`)**: Varsayılan secret anahtarlar reddedilir, SQLite engellenir, dev bootstrap kapatılır, login/register için IP bazlı oran sınırlayıcı (10 deneme/dakika) devreye girer.
 - **Bulut Dağıtımı**: Google Cloud Run + Cloud SQL (PostgreSQL) mimarisi ve GitHub Actions CI/CD akışları için [Aşama 8 rehberini](docs/phase8.md) inceleyin.
 
-Migration akışı: sunucuyu durdur, `python -m app.db.migrate` çalıştır, sonra sunucuyu başlat. Komut mevcut SQLite dosyasını backup API ile yedekler. `0001` temel kullanıcı/profil şemasını, `0002` beslenme tablolarını, `0003` sohbet tablolarını, `0004` uzun vadeli hafıza tablosunu, `0005` ise kimlik doğrulama tablolarını (`auth_sessions` ve şifre hash alanını) ekler. `alembic current` sürümü, `alembic check` model/şema farklarını gösterir.
+Migration akışı: sunucuyu durdur, `python -m app.db.migrate` çalıştır, sonra sunucuyu başlat. Komut mevcut SQLite dosyasını backup API ile yedekler. `0001` temel kullanıcı/profil şemasını, `0002` beslenme tablolarını, `0003` sohbet tablolarını, `0004` uzun vadeli hafıza tablosunu, `0005` kimlik doğrulama tablolarını, `0006` ise nullable onboarding girdileri ile sürümlü plan snapshot'ını ekler. `alembic current` sürümü, `alembic check` model/şema farklarını gösterir.
 
 Beslenme endpointleri ve veri sözleşmesi: [Aşama 2 rehberi](docs/phase2.md). Yeni sohbet endpointleri, intent şeması, gerçek Gemini kurulum/testi ve mevcut sınırlar: [Aşama 3 rehberi](docs/phase3.md).
 
 `.env` ve veritabanı Git dışında tutulur. Yedek için sunucuyu durdurup SQLite dosyasını güvenli bir konuma kopyalayabilirsin; çalışan veritabanı için SQLite backup API kullanılmalı. Başka bir bilgisayarda tekrarlanabilir kurulum için `requirements-lock.txt` geliştirme/test ortamının kesin sürümlerini içerir: `python -m pip install -r requirements-lock.txt`.
 
 Ayrıntılar: [Mimari ve geliştirme planı](docs/architecture.md).
+
+
+## Arayüz geliştirme
+
+NutriCoach UI V2 tasarım değişkenleri, bileşenleri, Türkçe metin kuralları ve izole tarayıcı testleri için [tasarım sistemi belgesine](docs/ui-v2.md) bakın. Yeni kontroller mevcut `.btn`, `.form-control` ve `.card` bileşenlerini kullanmalıdır.

@@ -1,0 +1,68 @@
+{% from "components/primitives.html" import icon, brand, field, themes %}
+<!doctype html>
+<html lang="tr">
+  <head>
+    {% include "components/head.html" %}
+    <title>{% block title %}{% endblock %} — NutriCoach</title>
+  </head>
+  <body class="auth-page">
+    <header class="auth-topbar">
+      <a href="/login" class="sidebar-brand">{{ brand() }}</a>{{ themes() }}
+    </header>
+    <main class="auth-shell">
+      <section class="auth-story" aria-labelledby="authStoryTitle">
+        <span class="eyebrow">SENİN HAYATIN. SENİN DENGEN.</span>
+        <h1 id="authStoryTitle">
+          İyi hissetmek,<br /><span>bir öğünle başlar.</span>
+        </h1>
+        <p>
+          Yediklerini keşfet, alışkanlıklarını anla. Sana uyum sağlayan beslenme
+          koçunla kendi dengeni bul.
+        </p>
+        <div class="auth-art" aria-hidden="true">
+          <div class="art-orbit orbit-one"></div>
+          <div class="art-orbit orbit-two"></div>
+          <div class="art-plate">
+            <div class="plate-center">{{ icon('leaf') }}</div>
+            <span class="plate-leaf leaf-one"></span
+            ><span class="plate-leaf leaf-two"></span
+            ><span class="plate-seed seed-one"></span
+            ><span class="plate-seed seed-two"></span>
+          </div>
+          <div class="art-note note-top">
+            {{ icon('camera') }}<span
+              >Bir fotoğraf.<br /><strong>Daha fazla farkındalık.</strong></span
+            >
+          </div>
+          <div class="art-note note-bottom">
+            {{ icon('coach') }}<span
+              >Her adımda<br /><strong>sana özel destek.</strong></span
+            >
+          </div>
+        </div>
+        <span class="auth-story-foot"
+          >Farkındalıkla beslen. Kendine iyi bak.</span
+        >
+      </section>
+      <section class="auth-card">
+        <div class="auth-card-heading">
+          <span class="eyebrow">NUTRICOACH’A HOŞ GELDİN</span>
+          <h2>{% block heading %}{% endblock %}</h2>
+          <p>{% block intro %}{% endblock %}</p>
+        </div>
+        <div
+          id="authAlert"
+          class="auth-alert hidden"
+          role="alert"
+          tabindex="-1"
+        ></div>
+        {% block form %}{% endblock %}
+        <p class="auth-switch">{% block switch %}{% endblock %}</p>
+        <p class="auth-footnote">Beslenme yolculuğun, senin hızında.</p>
+      </section>
+    </main>
+    <script src="/static/js/api.js?v=finalqa4"></script>
+    <script src="/static/js/ui.js?v=finalqa4"></script>
+    <script src="/static/js/auth.js?v=finalqa4"></script>
+  </body>
+</html>

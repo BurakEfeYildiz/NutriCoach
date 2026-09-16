@@ -10,6 +10,7 @@ from app.core.config import Settings
 from app.db.database import create_database
 from app.db.migrate import ROOT, migration_config, upgrade_database
 from app.main import create_app
+from app.scripts.migrate_sqlite_to_pg import TABLE_ORDER
 
 
 def phase1_metadata():
@@ -37,10 +38,11 @@ def test_adopts_phase1_preserves_file_and_rows(tmp_path):
         assert {name: connection.execute(f'SELECT * FROM {name}').fetchall() for name in before} == before
     with sqlite3.connect(path) as connection:
         assert [r[:5] for r in connection.execute('SELECT * FROM users').fetchall()] == before['users']
-        assert connection.execute('SELECT * FROM user_profiles').fetchall() == before['user_profiles']
+        profiles = connection.execute('SELECT * FROM user_profiles').fetchall()
+        assert [row[:len(before['user_profiles'][0])] for row in profiles] == before['user_profiles']
     upgrade_database(url)  # Re-running is safe.
     with sqlite3.connect(path) as connection:
-        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0005',)
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0008',)
         assert connection.execute('PRAGMA foreign_key_check').fetchall() == []
         assert connection.execute('SELECT calorie_target FROM user_profiles').fetchone() == (2200,)
     with TestClient(create_app(Settings(_env_file=None, database_url=url))) as client:
@@ -54,7 +56,14 @@ def test_fresh_database_and_metadata_match(tmp_path):
     with engine.begin() as connection:
         config = migration_config(); config.attributes['connection'] = connection
         command.check(config)
-        assert {'users', 'user_profiles', 'meals', 'meal_items', 'weight_logs', 'conversations', 'messages', 'ai_requests', 'memories', 'auth_sessions', 'alembic_version'} == set(inspect(connection).get_table_names())
+        assert {'users', 'user_profiles', 'meals', 'meal_items', 'weight_logs', 'conversations', 'messages', 'ai_requests', 'memories', 'auth_sessions', 'foods', 'food_aliases', 'food_portions', 'favorite_foods', 'daily_steps', 'workouts', 'recipes', 'recipe_ingredients', 'alembic_version'} == set(inspect(connection).get_table_names())
+        assert set(TABLE_ORDER) == set(inspect(connection).get_table_names()) - {'alembic_version'}
+        position = {name: index for index, name in enumerate(TABLE_ORDER)}
+        for table in TABLE_ORDER:
+            for foreign_key in inspect(connection).get_foreign_keys(table):
+                parent = foreign_key['referred_table']
+                if parent != table:
+                    assert position[parent] < position[table], f'{table} precedes {parent}'
     engine.dispose()
 
 
@@ -99,7 +108,7 @@ def test_phase2_to_chat_preserves_all_nutrition_rows(tmp_path):
     with sqlite3.connect(backup) as connection:
         assert {table: connection.execute(f'SELECT * FROM {table} ORDER BY 1').fetchall() for table in tables} == before
     with sqlite3.connect(path) as connection:
-        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0005',)
+        assert connection.execute('SELECT version_num FROM alembic_version').fetchone() == ('0008',)
         assert connection.execute('PRAGMA foreign_key_check').fetchall() == []
 
 

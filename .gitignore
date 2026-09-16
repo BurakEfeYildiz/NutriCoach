@@ -12,3 +12,7 @@ __pycache__/
 .DS_Store
 
 *.db.backup-*
+
+# Local environment link and preserved cloud-placeholder environment
+.venv
+.venv.dataless-backup/

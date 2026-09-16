@@ -1,0 +1,10 @@
+{% from "components/primitives.html" import icon %}
+{% for route,label in [('today','Bugün'),('meals','Öğünler'),('coach','Koç'),('progress','İlerleme'),('recipes','Tarifler')] %}
+  <a
+    href="/{{ route }}"
+    class="{{ 'bottom-nav-item' if mobile else 'nav-item' }} {% if active_tab == route %}active{% endif %}"
+    {% if not mobile %}id="nav-{{ route }}"{% endif %}
+    {% if active_tab == route %}aria-current="page"{% endif %}
+    >{{ icon(route, 'nav-icon') }}<span>{{ label }}</span></a
+  >
+{% endfor %}

@@ -35,7 +35,7 @@ This document serves as the complete technical specification and operational dep
      │ Cloud SQL (PostgreSQL) │  │ Google Gemini API   │
      │  - Pooled connections  │  │  - google-genai SDK │
      │  - Zero data loss      │  │  - Search Grounding │
-     │  - Alembic Head (0005) │  │  - Photo Analysis   │
+     │  - Alembic Head (0008) │  │  - Photo Analysis   │
      └────────────────────────┘  └─────────────────────┘
 ```
 
@@ -48,7 +48,7 @@ This document serves as the complete technical specification and operational dep
 - **User Privileges**: Runs strictly under a non-root system user (`appuser`, UID 10001) to satisfy CIS benchmarks and container security standards.
 - **Port Binding**: Dynamically evaluates `$PORT` (injected automatically by Google Cloud Run, defaulting to `8080`).
 - **Proxy Headers**: Uvicorn is invoked with `--proxy-headers --forwarded-allow-ips='*'`, correctly parsing client IPs and `https` scheme through Google Cloud Frontends.
-- **Exclusions**: `.dockerignore` strictly prevents shipping `.git`, virtual environments (`.venv`), SQLite database files (`*.db`), test suites, and unencrypted local `.env` files into build images.
+- **Exclusions**: `.dockerignore` prevents shipping `.git`, virtual environments, SQLite databases and backup copies, test suites, and local `.env` files into build images.
 
 ### 2. Database Layer: Dual-Engine Support (SQLite & PostgreSQL)
 NutriCoach dynamically accommodates both local SQLite development and production PostgreSQL:
@@ -58,7 +58,7 @@ NutriCoach dynamically accommodates both local SQLite development and production
   - `pool_pre_ping=True`: Detects and transparently discards stale/dropped database connections before executing queries.
   - `pool_recycle=1800`: Automatically recycles TCP connections every 30 minutes to stay ahead of firewall timeouts.
   - `pool_size=5`, `max_overflow=10`: Bounds concurrency per instance to avoid exhausting Cloud SQL connection limits.
-- **Alembic Schema Head**: Current head is `0005` (incorporating user auth, profile, meal photos, conversation memory, and selective web search logs).
+- **Alembic Schema Head**: Current Product V2 head is `0008_adaptive_recipes`; container image includes the `migrations/` chain. Migrate the target before starting the application.
 
 ### 3. Production Hardening & Fail-Fast Validation (`app/core/config.py`)
 When `APP_ENV=production`, NutriCoach executes strict fail-fast startup assertions:
@@ -71,9 +71,10 @@ When `APP_ENV=production`, NutriCoach executes strict fail-fast startup assertio
 
 ### 4. Data Migration Tool (`app/scripts/migrate_sqlite_to_pg.py`)
 Facilitates one-time or scheduled transfer of existing local SQLite data into Cloud SQL PostgreSQL:
-- **Safe Pre-Flight**: Verifies that the target database schema matches Alembic `head` revision before writing.
+- **Safe Pre-Flight**: Verifies that both source and target database schemas match Alembic `head` revision before writing.
 - **Topological Integrity**: Inserts records according to explicit foreign-key dependency order:
-  `users` ➔ `user_profiles` ➔ `auth_sessions` ➔ `meals` ➔ `meal_items` ➔ `conversations` ➔ `messages` ➔ `ai_requests` ➔ `memories`.
+  `users` ➔ profile/sessions ➔ foods/aliases/portions/favorites ➔ meals/items/weight/activity ➔ recipes/ingredients ➔ conversations/messages/requests/memories.
+- **Exact Values and Time**: Converts SQLite's integer hundredths back to decimal nutrition/weight values and naive UTC timestamps to timezone-aware UTC before PostgreSQL insertion.
 - **Dry-Run Mode**: Supports `--dry-run` flag to inspect table row counts without committing data.
 
 ```bash

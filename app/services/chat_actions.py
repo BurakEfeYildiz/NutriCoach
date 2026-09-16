@@ -10,7 +10,8 @@ from app.schemas.chat import ActionResult
 from app.schemas.intents import IntentPlan, MealCreate, MealDelete, MealUpdate, ProfileUpdate, TargetSelector, WeightCreate
 from app.schemas.nutrition import ItemWrite, MealReplace, MealWrite, WeightWrite
 from app.schemas.user import ProfileWrite
-from app.services import nutrition, users, weights
+from app.services import food_data, nutrition, users, weights
+from app.schemas.food import FoodLogPreviewRequest
 
 
 class ClarificationNeeded(Exception):
@@ -66,9 +67,36 @@ def apply_actions(session: Session, user_id: str, plan: IntentPlan, now: datetim
             values['occurred_at'] = action.meal.occurred_at or now
             values['original_description'] = original_text
             values['nutrition_source'] = 'estimate'
+            matched_foods = []
             for item in values['items']:
                 item['source'] = 'estimate'
+                matches = food_data.search_foods(session, user_id, item['name'], limit=3)
+                needle = food_data.normalize_term(item['name'])
+                exact = next((food for food in matches if food.normalized_name == needle or any(a.normalized_alias == needle for a in food.aliases)), None)
+                matched = None
+                if exact:
+                    try:
+                        item_unit = normalized_unit(item['unit'])
+                        base_unit = {'per_100g': 'g', 'per_100ml': 'ml', 'per_serving': 'serving'}[exact.basis_type]
+                        portion = next((p for p in exact.portions if item_unit in {normalized_unit(p.unit), normalized(p.label)}), None)
+                        request = FoodLogPreviewRequest(food_id=exact.id, quantity=item['quantity'], portion_id=portion.id) if portion else FoodLogPreviewRequest(food_id=exact.id, quantity=item['quantity'], unit=item_unit if item_unit == base_unit else base_unit)
+                        if not portion and item_unit != base_unit:
+                            raise ValueError('Food-specific portion not found.')
+                        preview = food_data.preview_food(session, user_id, request)
+                        item.update(calories=preview.calories, protein_g=preview.protein_g, carbs_g=preview.carbs_g, fat_g=preview.fat_g, source=exact.source)
+                        matched = (exact, portion, preview)
+                    except Exception:
+                        pass
+                matched_foods.append(matched)
             meal = nutrition.create_meal(session, user_id, MealWrite.model_validate(values), commit=False)
+            for meal_item, matched in zip(meal.items, matched_foods):
+                if matched:
+                    matched_food, portion, preview = matched
+                    meal_item.food_id = matched_food.id
+                    meal_item.food_portion_id = portion.id if portion else None
+                    meal_item.portion_label = preview.portion_label
+                    meal_item.food_source = matched_food.source
+                    meal_item.source_food_id = matched_food.source_food_id
             results.append(ActionResult(type=action.type, record_id=meal.id, version=meal.version))
         elif isinstance(action, (MealUpdate, MealDelete)):
             meal, target = resolved[index]
@@ -103,5 +131,7 @@ def apply_actions(session: Session, user_id: str, plan: IntentPlan, now: datetim
             profile = ProfileWrite.model_validate(user.profile).model_dump()
             profile.update(action.changes.model_dump(exclude_unset=True))
             users.replace_profile(session, user_id, ProfileWrite.model_validate(profile), commit=False)
+            if user.profile.onboarding_completed_at is not None:
+                users.recalculate_targets(session, user_id, commit=False)
             results.append(ActionResult(type=action.type, record_id=user_id))
     return results

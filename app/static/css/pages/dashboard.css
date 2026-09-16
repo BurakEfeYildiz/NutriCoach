@@ -1,0 +1,302 @@
+.greeting-content {
+  min-width: 0;
+}
+.greeting-title {
+  margin-top: var(--space-2);
+  max-width: 30ch;
+}
+.dashboard-header > .btn {
+  flex-shrink: 0;
+}
+.dashboard-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: var(--space-6);
+}
+.nutrition-hero-card {
+  background: var(--color-surface);
+  padding: var(--space-8);
+}
+.hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.hero-body {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-6) 0;
+}
+.calorie-ring {
+  position: relative;
+  flex: 0 1 208px;
+  aspect-ratio: 1;
+  min-width: 160px;
+}
+.ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.ring-track,
+.ring-fill {
+  fill: none;
+  stroke-width: 9;
+}
+.ring-track {
+  stroke: var(--color-surface-tertiary);
+}
+.ring-fill {
+  stroke: var(--color-primary);
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 600ms var(--ease-out);
+}
+.calorie-focus {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.calorie-value {
+  font-size: var(--font-size-metric);
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.06em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.calorie-unit {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+.calorie-meta {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.meta-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.meta-value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.hero-subtext {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+.calorie-progress-container {
+  display: none;
+}
+.macros-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-8);
+}
+.macros-section .muted {
+  font-size: var(--font-size-xs);
+}
+.macros-grid {
+  display: grid;
+  gap: var(--space-5);
+}
+.macro-card {
+  min-width: 0;
+}
+.macro-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.macro-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
+}
+.macro-ratio {
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+.macro-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.protein-dot,
+.protein-fill {
+  background: var(--color-protein);
+}
+.carbs-dot,
+.carbs-fill {
+  background: var(--color-carbs);
+}
+.fat-dot,
+.fat-fill {
+  background: var(--color-fat);
+}
+.macro-progress-bg,
+.progress-bar-bg {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-tertiary);
+  overflow: hidden;
+}
+.macro-progress-fill,
+.progress-bar-fill {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  transition: width 500ms var(--ease-out);
+}
+.macro-remaining {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+.macros-section > .link-subtle {
+  margin-top: var(--space-4);
+  align-self: flex-start;
+}
+.dashboard-lower {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+.dashboard-aside {
+  display: grid;
+  gap: var(--space-4);
+}
+.dashboard-quick-actions { display: grid; gap: var(--space-3); }
+.quick-action-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.dashboard-quick-actions .muted { font-size: var(--font-size-sm); }
+.scanner-entry {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  background: var(--color-accent-soft);
+  border-color: transparent;
+  position: relative;
+}
+.scanner-entry-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  margin-bottom: var(--space-2);
+}
+.scanner-entry .eyebrow {
+  color: var(--color-text-secondary);
+}
+.scanner-entry h2 {
+  font-size: var(--font-size-xl);
+}
+.scanner-entry p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  max-width: 35ch;
+}
+.scanner-entry > .btn {
+  margin-top: var(--space-2);
+}
+.coach-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text);
+}
+.coach-entry > span {
+  display: grid;
+  flex: 1;
+  gap: var(--space-1);
+}
+.coach-entry strong {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+}
+.coach-entry span > span {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+.coach-entry > .icon:first-child {
+  color: var(--color-primary);
+}
+.weight-quick {
+  justify-self: start;
+}
+@media (max-width: 1200px) and (min-width: 901px) {
+  .hero-body {
+    gap: var(--space-4);
+  }
+  .calorie-ring {
+    min-width: 144px;
+  }
+  .nutrition-hero-card,
+  .macros-section {
+    padding: var(--space-5);
+  }
+  .dashboard-overview {
+    gap: var(--space-4);
+  }
+}
+@media (max-width: 680px) {
+  .dashboard-overview,
+  .dashboard-lower {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+  .nutrition-hero-card,
+  .macros-section {
+    padding: var(--space-5);
+  }
+  .hero-body {
+    justify-content: center;
+    gap: var(--space-6);
+  }
+  .calorie-ring {
+    flex-basis: 192px;
+  }
+  .calorie-meta {
+    flex: 1;
+  }
+  .dashboard-header > .btn {
+    min-height: 44px;
+  }
+  .macros-grid {
+    gap: var(--space-4);
+  }
+  .dashboard-aside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .greeting-title {
+    font-size: var(--font-size-2xl);
+  }
+  .scanner-entry {
+    padding: var(--space-6);
+  }
+}

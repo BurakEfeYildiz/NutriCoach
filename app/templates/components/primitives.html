@@ -1,0 +1,71 @@
+{% macro icon(name, class_name='icon') -%}
+  <svg
+    class="{{ class_name }}"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <use href="/static/assets/{{ 'icons-v2.svg' if name in ['recipes','settings','star'] else 'icons.svg' }}#{{ name }}"></use>
+  </svg>
+{%- endmacro %}
+{% macro brand(compact=false) -%}
+  <span class="brand-logo" aria-hidden="true"
+    ><img
+      class="logo-light"
+      src="/static/assets/logo/logo-icon.svg"
+      alt="" /><img
+      class="logo-dark"
+      src="/static/assets/logo/logo-icon-dark.svg"
+      alt=""
+  /></span>
+  {% if not compact %}<span class="brand-info"
+    ><span class="brand-name">NutriCoach<span class="brand-dot">.</span></span
+    ><span class="brand-tag">İyi beslen. İyi hisset.</span></span
+  >{% endif %}
+{%- endmacro %}
+{% macro field(id, label, type='text', autocomplete='', placeholder='', required=true) -%}
+  <div class="form-field">
+    <label class="form-label" for="{{ id }}">{{ label }}</label>
+    <div
+      class="{% if type == 'password' %}password-control{% else %}control-wrap{% endif %}"
+    >
+      <input
+        class="form-control"
+        id="{{ id }}"
+        name="{{ id }}"
+        type="{{ type }}"
+        autocomplete="{{ autocomplete }}"
+        placeholder="{{ placeholder }}"
+        {% if required %}required{% endif %}{% if type == 'password' %}minlength="8"{% endif %}{% if id == 'name' %}maxlength="200"{% endif %}
+      />
+      {% if type == 'password' %}<button
+        class="btn btn-ghost btn-icon password-toggle"
+        type="button"
+        data-password-toggle="{{ id }}"
+        aria-label="Şifreyi göster"
+        aria-pressed="false"
+      >
+        {{ icon('eye') }}
+      </button>{% endif %}
+    </div>
+  </div>
+{%- endmacro %}
+{% macro themes() -%}<div
+  class="theme-switcher-group"
+  role="group"
+  aria-label="Görünüm tercihi"
+>
+  {% for mode,label,symbol in [('light','Açık','sun'),('dark','Koyu','moon'),('system','Sistem','monitor')] %}<button
+    type="button"
+    class="theme-btn"
+    data-theme-btn="{{ mode }}"
+    aria-label="{{ label }} tema"
+    aria-pressed="false"
+  >
+    {{ icon(symbol) }}<span>{{ label }}</span>
+  </button>{% endfor %}
+</div>{%- endmacro %}

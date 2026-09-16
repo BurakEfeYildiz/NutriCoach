@@ -5,18 +5,28 @@ Usage:
 """
 import argparse
 import sys
-from sqlalchemy import MetaData, Table, create_engine, select
-from sqlalchemy.orm import Session
+from sqlalchemy import MetaData, Table, select
 
-from app.db.database import create_database
+from app.db.database import Base, create_database
 from app.db.migrate import require_current_schema
+from app.db.types import Amount, UTCDateTime
+from app.models import activity, auth, chat, food, memory, nutrition, recipe, user  # noqa: F401 - register metadata
 
 TABLE_ORDER = [
     "users",
     "user_profiles",
     "auth_sessions",
+    "foods",
+    "food_aliases",
+    "food_portions",
+    "favorite_foods",
     "meals",
     "meal_items",
+    "weight_logs",
+    "daily_steps",
+    "workouts",
+    "recipes",
+    "recipe_ingredients",
     "conversations",
     "messages",
     "ai_requests",
@@ -24,9 +34,23 @@ TABLE_ORDER = [
 ]
 
 
+def normalize_source_row(table_name: str, row: dict, source_dialect) -> dict:
+    """Convert SQLite's scaled amounts and naive UTC timestamps before PG insert."""
+    model_table = Base.metadata.tables[table_name]
+    normalized = dict(row)
+    for name, value in normalized.items():
+        column_type = model_table.c[name].type
+        if value is not None and isinstance(column_type, (Amount, UTCDateTime)):
+            normalized[name] = column_type.process_result_value(value, source_dialect)
+    return normalized
+
+
 def migrate_data(sqlite_url: str, pg_url: str, dry_run: bool = False):
     print(f"Connecting to source SQLite: {sqlite_url}")
     src_engine, _ = create_database(sqlite_url)
+
+    # A source on an older revision can silently omit Product V2 columns/tables.
+    require_current_schema(src_engine)
 
     print(f"Connecting to target PostgreSQL: {pg_url.split('@')[-1] if '@' in pg_url else pg_url}")
     tgt_engine, _ = create_database(pg_url)
@@ -67,11 +91,7 @@ def migrate_data(sqlite_url: str, pg_url: str, dry_run: bool = False):
 
             print(f"[{tbl_name}] Transferring {len(rows)} rows...")
 
-            # Clean rows dicts
-            insert_records = []
-            for row in rows:
-                record = dict(row)
-                insert_records.append(record)
+            insert_records = [normalize_source_row(tbl_name, row, src_engine.dialect) for row in rows]
 
             if not dry_run:
                 tgt_conn.execute(tgt_table.insert(), insert_records)

@@ -26,6 +26,9 @@ class Settings(BaseSettings):
         default='local', validation_alias=AliasChoices('APP_ENV', 'NUTRICOACH_APP_ENVIRONMENT')
     )
     gemini_diagnostics: bool = False
+    usda_fdc_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices('USDA_FDC_API_KEY', 'NUTRICOACH_USDA_FDC_API_KEY'))
+    open_food_facts_user_agent: str = Field(default="NutriCoach/0.9 (local development)", validation_alias=AliasChoices('OPEN_FOOD_FACTS_USER_AGENT', 'NUTRICOACH_OPEN_FOOD_FACTS_USER_AGENT'))
+    food_provider_timeout_seconds: int = Field(default=15, ge=1, le=60)
 
     secret_key: SecretStr = Field(default=SecretStr("nutricoach-insecure-dev-secret-change-in-prod"), validation_alias=AliasChoices("SECRET_KEY", "NUTRICOACH_SECRET_KEY"))
     session_cookie_name: str = "nutricoach_session"

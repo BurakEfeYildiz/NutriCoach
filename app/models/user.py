@@ -1,7 +1,7 @@
 from datetime import date, datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, String
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Integer, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -48,5 +48,24 @@ class UserProfile(Base):
     carb_target_g: Mapped[float | None]
     fat_target_g: Mapped[float | None]
     preferred_weekly_weight_change_kg: Mapped[float | None]
+    goal_type: Mapped[str | None] = mapped_column(String(20))
+    training_frequency: Mapped[str | None] = mapped_column(String(20))
+    pace_percent_per_week: Mapped[float | None] = mapped_column(Float)
+    pregnancy_or_breastfeeding: Mapped[bool | None] = mapped_column(Boolean)
+    dietary_exclusions: Mapped[list | None] = mapped_column(JSON)
+    onboarding_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    # Versioned, deterministic goal snapshot. Current weight always comes from WeightLog.
+    bmr_kcal: Mapped[int | None] = mapped_column(Integer)
+    estimated_expenditure_kcal: Mapped[int | None] = mapped_column(Integer)
+    expenditure_source: Mapped[str | None] = mapped_column(String(30))
+    planned_rate_kg_per_week: Mapped[float | None] = mapped_column(Float)
+    planned_eta_earliest: Mapped[date | None] = mapped_column(Date)
+    planned_eta_latest: Mapped[date | None] = mapped_column(Date)
+    eta_source: Mapped[str | None] = mapped_column(String(30))
+    plan_status: Mapped[str | None] = mapped_column(String(40))
+    plan_constraint_reason: Mapped[str | None] = mapped_column(String(200))
+    calculation_version: Mapped[str | None] = mapped_column(String(30))
+    targets_recalculated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
     user: Mapped[User] = relationship(back_populates="profile")

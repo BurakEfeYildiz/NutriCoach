@@ -1,0 +1,171 @@
+<dialog id="confirmDialog" class="app-dialog" aria-label="İşlem penceresi">
+  <form method="dialog" class="dialog-card">
+    <h3 class="dialog-title" id="confirmDialogTitle">Onay</h3>
+    <p class="dialog-message" id="confirmDialogMessage">
+      Bu işlemi yapmak istediğinize emin misiniz?
+    </p>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-secondary" id="confirmDialogCancel">
+        Vazgeç
+      </button>
+      <button type="button" class="btn btn-danger" id="confirmDialogConfirm">
+        Evet, Onayla
+      </button>
+    </div>
+  </form>
+</dialog>
+
+<dialog
+  id="modalPhotoMealReview"
+  class="app-dialog modal-form-dialog modal-photo-dialog"
+  aria-label="Fotoğraftan öğün"
+>
+  <div class="dialog-card photo-review-card">
+    <div class="dialog-header">
+      <div class="photo-review-title-group">
+        <h3 class="dialog-title" id="mealReviewTitle">
+          Fotoğraftan öğün tahmini
+        </h3>
+        <span class="photo-confidence-tag" id="photoMealConfidence"
+          >Yapay Zeka Analizi</span
+        >
+      </div>
+      <button
+        type="button"
+        class="dialog-close"
+        id="btnClosePhotoMeal"
+        aria-label="Kapat"
+      >
+        &times;
+      </button>
+    </div>
+    <div class="dialog-body photo-review-body">
+      <div
+        class="initially-hidden photo-preview-container"
+        id="photoPreviewContainer"
+      >
+        <img
+          id="photoPreviewImg"
+          alt="Fotoğraf Önizleme"
+          class="photo-preview-thumb"
+        />
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-field">
+          <label class="form-label" for="photoMealType">Öğün Tipi</label>
+          <select id="photoMealType" class="form-control">
+            <option value="breakfast">Kahvaltı</option>
+            <option value="lunch">Öğle Yemeği</option>
+            <option value="dinner">Akşam Yemeği</option>
+            <option value="snack">Ara Öğün</option>
+            <option value="other">Diğer</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="photoMealDescription"
+            >Öğün Başlığı / Not</label
+          >
+          <input
+            type="text"
+            id="photoMealDescription"
+            class="form-control"
+            placeholder="Örn: Izgara tavuk ve salata"
+            maxlength="4000"
+            required
+          />
+        </div>
+      </div>
+
+      <p id="photoAnalysisWarnings" class="alert alert-warning" hidden></p>
+      <div class="photo-items-wrapper">
+        <div class="photo-items-header">
+          <h4 class="photo-section-subtitle">Öğündeki yiyecekler</h4>
+          <button
+            type="button"
+            class="btn btn-sm btn-secondary"
+            id="btnAddPhotoItem"
+          >
+            + Yiyecek Ekle
+          </button>
+        </div>
+        <div class="photo-items-list" id="photoItemsList"></div>
+      </div>
+
+      <div class="photo-totals-bar" id="photoTotalsBar">
+        <div class="total-cal-badge">
+          <span class="total-cal-label">Toplam:</span>
+          <span class="total-cal-val" id="photoTotalCalories">0 kcal</span>
+        </div>
+        <div class="total-macros-list">
+          <span>P: <strong id="photoTotalProtein">0</strong>g</span>
+          <span>K: <strong id="photoTotalCarbs">0</strong>g</span>
+          <span>Y: <strong id="photoTotalFat">0</strong>g</span>
+        </div>
+      </div>
+
+      <div class="photo-disclaimer-note">
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span
+          >Fotoğraftan yapılan porsiyon ve besin değerleri yaklaşık
+          tahminlerdir. Kaydetmeden önce kontrol edip düzenleyebilirsiniz.</span
+        >
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-secondary" id="btnCancelPhotoMeal">
+        Vazgeç
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        id="btnConfirmSavePhotoMeal"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Öğün Olarak Kaydet</span>
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<dialog
+  id="photoScanningDialog"
+  class="app-dialog"
+  aria-labelledby="scanningTitle"
+>
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h2 id="scanningTitle" class="dialog-title">Tabağını inceliyorum</h2>
+      <button type="button" id="btnCancelScan" class="btn btn-ghost btn-sm">
+        Vazgeç
+      </button>
+    </div>
+    <div class="scanner-stage">
+      <img id="scanningPreview" alt="Analiz edilen öğün fotoğrafı" />
+    </div>
+    <p class="scanner-message" role="status">
+      Yiyecekler ve tahmini porsiyonlar belirleniyor…
+    </p>
+    <p class="form-help">Sonuçları kaydetmeden önce düzenleyebilirsin.</p>
+  </div>
+</dialog>

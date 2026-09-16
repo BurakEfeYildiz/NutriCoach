@@ -1,0 +1,167 @@
+{
+  "date": "2026-09-14",
+  "pytest": {
+    "passed": 164,
+    "deprecation_warnings": 3
+  },
+  "browser_reports": {
+    "chromium": {
+      "browser": "chromium",
+      "checks": 88,
+      "authDimensions": {
+        "login/360": {
+          "card": 320,
+          "input": 48,
+          "button": 52
+        },
+        "login/390": {
+          "card": 350,
+          "input": 48,
+          "button": 52
+        },
+        "login/430": {
+          "card": 390,
+          "input": 48,
+          "button": 52
+        },
+        "login/768": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "login/1024": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "login/1280": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "login/1440": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "register/360": {
+          "card": 320,
+          "input": 48,
+          "button": 52
+        },
+        "register/390": {
+          "card": 350,
+          "input": 48,
+          "button": 52
+        },
+        "register/430": {
+          "card": 390,
+          "input": 48,
+          "button": 52
+        },
+        "register/768": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "register/1024": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "register/1280": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "register/1440": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        }
+      },
+      "errors": [],
+      "consoleErrors": [],
+      "violations": []
+    },
+    "webkit": {
+      "browser": "webkit",
+      "checks": 88,
+      "authDimensions": {
+        "login/360": {
+          "card": 320,
+          "input": 48,
+          "button": 52
+        },
+        "login/390": {
+          "card": 350,
+          "input": 48,
+          "button": 52
+        },
+        "login/430": {
+          "card": 390,
+          "input": 48,
+          "button": 52
+        },
+        "login/768": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "login/1024": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "login/1280": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "login/1440": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "register/360": {
+          "card": 320,
+          "input": 48,
+          "button": 52
+        },
+        "register/390": {
+          "card": 350,
+          "input": 48,
+          "button": 52
+        },
+        "register/430": {
+          "card": 390,
+          "input": 48,
+          "button": 52
+        },
+        "register/768": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "register/1024": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "register/1280": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        },
+        "register/1440": {
+          "card": 460,
+          "input": 48,
+          "button": 52
+        }
+      },
+      "errors": [],
+      "consoleErrors": [],
+      "violations": []
+    }
+  }
+}

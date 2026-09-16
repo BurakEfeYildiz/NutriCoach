@@ -243,13 +243,13 @@ def test_weight_profile_actions_and_patch_preserves_fields(chat_env):
     client.put(f'/api/v1/users/{users[0]}/profile', json={'height_cm': 180, 'protein_target_g': 150})
     fake.intents.appendleft(intent([
         {'type': 'weight_log_create', 'weight': {'weight_kg': '97.80', 'occurred_at': None}},
-        {'type': 'profile_update', 'changes': {'calorie_target': 2200}},
+        {'type': 'profile_update', 'changes': {'activity_level': 'moderate'}},
     ]))
-    result = send(chat_env, 'Kilom 97.8, kalori hedefimi 2200 yap').json()
+    result = send(chat_env, 'Kilom 97.8, günlük hareket düzeyim orta').json()
     assert result['user_message']['status'] == 'completed'
     profile = client.get(f'/api/v1/users/{users[0]}/profile').json()
     assert profile['height_cm'] == 180 and profile['protein_target_g'] == 150
-    assert profile['calorie_target'] == 2200
+    assert profile['activity_level'] == 'moderate'
     assert client.get(f'/api/v1/users/{users[0]}/weight-logs/current').json()['weight_kg'] == '97.80'
 
 

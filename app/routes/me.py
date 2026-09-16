@@ -30,7 +30,16 @@ from app.schemas.nutrition import (
     WeightRead,
     WeightWrite,
 )
-from app.schemas.user import ProfileRead, ProfileWrite, UserRead
+from app.schemas.user import (
+    AccountUpdate,
+    NutritionPlanRead,
+    NutritionProfileUpdate,
+    OnboardingComplete,
+    OnboardingStatusRead,
+    ProfileRead,
+    ProfileWrite,
+    UserRead,
+)
 from app.services import auth_service, memory_service, nutrition, users, weights
 from app.services.chat_service import ChatService
 
@@ -61,6 +70,32 @@ def get_my_profile(user: CurrentUser, session: Database):
 @router.put("/profile", response_model=ProfileRead, dependencies=[CSRF])
 def replace_my_profile(data: ProfileWrite, user: CurrentUser, session: Database):
     return users.replace_profile(session, user.id, data)
+
+
+@router.patch("/account", response_model=UserRead, dependencies=[CSRF])
+def update_my_account(data: AccountUpdate, user: CurrentUser, session: Database):
+    return users.update_account(session, user.id, data)
+
+
+@router.get("/onboarding", response_model=OnboardingStatusRead)
+def get_my_onboarding(user: CurrentUser, session: Database):
+    plan = users.nutrition_plan(session, user.id)
+    return {"completed": plan["onboarding_complete"], "missing_fields": plan["missing_fields"], "plan": plan}
+
+
+@router.put("/onboarding", response_model=NutritionPlanRead, dependencies=[CSRF])
+def complete_my_onboarding(data: OnboardingComplete, user: CurrentUser, session: Database):
+    return users.complete_onboarding(session, user.id, data)
+
+
+@router.get("/nutrition-plan", response_model=NutritionPlanRead)
+def get_my_nutrition_plan(user: CurrentUser, session: Database):
+    return users.nutrition_plan(session, user.id)
+
+
+@router.put("/nutrition-profile", response_model=NutritionPlanRead, dependencies=[CSRF])
+def update_my_nutrition_profile(data: NutritionProfileUpdate, user: CurrentUser, session: Database):
+    return users.update_nutrition_profile(session, user.id, data)
 
 
 @router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT, dependencies=[CSRF])
@@ -209,7 +244,7 @@ def list_my_weights(user: CurrentUser, session: Database, limit: Limit = 100, of
     return weights.list_weights(session, user.id, limit, offset)
 
 
-@router.get("/weight-logs/current", response_model=WeightRead)
+@router.get("/weight-logs/current", response_model=WeightRead | None)
 def my_current_weight(user: CurrentUser, session: Database):
     return weights.current_weight(session, user.id)
 

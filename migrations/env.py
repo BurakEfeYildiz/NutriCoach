@@ -1,7 +1,7 @@
 from alembic import context
 from app.core.config import Settings
 from app.db.database import Base, create_database
-from app.models import auth, chat, memory, nutrition, user  # noqa: F401
+from app.models import activity, auth, chat, food, memory, nutrition, recipe, user  # noqa: F401
 
 config = context.config
 

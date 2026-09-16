@@ -16,7 +16,7 @@ from app.routes.dependencies import (
     get_settings,
 )
 from app.schemas.user import UserRead
-from app.services import auth_service
+from app.services import auth_service, users
 
 ROOT = Path(__file__).resolve().parents[2]
 TEMPLATES_DIR = ROOT / "app" / "templates"
@@ -25,10 +25,19 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 router = APIRouter(tags=["web"])
 
 
-def _render_authenticated(request: Request, session: Session, template_name: str, active_tab: str):
+def _render_authenticated(
+    request: Request,
+    session: Session,
+    template_name: str,
+    active_tab: str,
+    *,
+    require_onboarding: bool = True,
+):
     user = get_current_user_optional(request, session)
     if user is None:
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    if require_onboarding and not users.onboarding_complete(session, user.id):
+        return RedirectResponse(url="/onboarding", status_code=status.HTTP_303_SEE_OTHER)
 
     settings = get_settings(request)
     auth_session = getattr(request.state, "auth_session", None)
@@ -50,7 +59,8 @@ def root(request: Request, session: Database):
     user = get_current_user_optional(request, session)
     if user is None:
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
-    return RedirectResponse(url="/today", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+    destination = "/today" if users.onboarding_complete(session, user.id) else "/onboarding"
+    return RedirectResponse(url=destination, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 
 @router.get("/today", response_class=HTMLResponse)
@@ -73,16 +83,37 @@ def progress_page(request: Request, session: Database):
     return _render_authenticated(request, session, "progress.html", "progress")
 
 
+@router.get("/recipes", response_class=HTMLResponse)
+def recipes_page(request: Request, session: Database):
+    return _render_authenticated(request, session, "recipes.html", "recipes")
+
+
 @router.get("/profile", response_class=HTMLResponse)
 def profile_page(request: Request, session: Database):
     return _render_authenticated(request, session, "profile.html", "profile")
+
+
+@router.get("/account", response_class=HTMLResponse)
+def account_page(request: Request, session: Database):
+    return _render_authenticated(request, session, "account.html", "account", require_onboarding=False)
+
+
+@router.get("/onboarding", response_class=HTMLResponse)
+def onboarding_page(request: Request, session: Database):
+    user = get_current_user_optional(request, session)
+    if user is None:
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    if users.onboarding_complete(session, user.id):
+        return RedirectResponse(url="/today", status_code=status.HTTP_303_SEE_OTHER)
+    return _render_authenticated(request, session, "onboarding.html", "onboarding", require_onboarding=False)
 
 
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, session: Database):
     user = get_current_user_optional(request, session)
     if user is not None:
-        return RedirectResponse(url="/today", status_code=status.HTTP_303_SEE_OTHER)
+        destination = "/today" if users.onboarding_complete(session, user.id) else "/onboarding"
+        return RedirectResponse(url=destination, status_code=status.HTTP_303_SEE_OTHER)
     return templates.TemplateResponse(request, "login.html", {})
 
 
@@ -90,7 +121,8 @@ def login_page(request: Request, session: Database):
 def register_page(request: Request, session: Database):
     user = get_current_user_optional(request, session)
     if user is not None:
-        return RedirectResponse(url="/today", status_code=status.HTTP_303_SEE_OTHER)
+        destination = "/today" if users.onboarding_complete(session, user.id) else "/onboarding"
+        return RedirectResponse(url=destination, status_code=status.HTTP_303_SEE_OTHER)
     return templates.TemplateResponse(request, "register.html", {})
 
 

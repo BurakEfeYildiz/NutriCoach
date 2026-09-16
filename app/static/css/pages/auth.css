@@ -1,0 +1,290 @@
+.auth-page {
+  min-height: 100dvh;
+  background: var(--color-bg);
+}
+.auth-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: auto;
+  padding: var(--space-8) var(--space-12);
+  gap: var(--space-5);
+}
+.auth-topbar .theme-switcher-group {
+  width: 300px;
+}
+.auth-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--auth-card-width);
+  align-items: start;
+  gap: var(--space-16);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-10) var(--space-16);
+  min-height: calc(100dvh - 120px);
+}
+.auth-story {
+  min-width: 0;
+  padding-top: var(--space-8);
+}
+.auth-story h1 {
+  font-size: var(--font-size-display);
+  line-height: 1.12;
+  margin: var(--space-5) 0;
+  letter-spacing: -0.055em;
+}
+.auth-story h1 span {
+  color: var(--color-primary);
+}
+.auth-story > p {
+  max-width: 40ch;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+}
+.auth-story-foot {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+.auth-card {
+  width: 100%;
+  max-width: var(--auth-card-width);
+  padding: var(--space-10);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  display: grid;
+  gap: var(--space-6);
+}
+.auth-card-heading {
+  display: grid;
+  gap: var(--space-3);
+}
+.auth-card-heading h2 {
+  font-size: var(--font-size-2xl);
+  letter-spacing: var(--tracking-heading);
+}
+.auth-card-heading > p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+.auth-card-heading .eyebrow {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+}
+.auth-form {
+  display: grid;
+  gap: var(--space-5);
+}
+.auth-form > .btn {
+  width: 100%;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+}
+.auth-switch {
+  font-size: var(--font-size-sm);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+.auth-switch a {
+  font-weight: var(--font-semibold);
+}
+.auth-footnote {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-5);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+.password-control {
+  position: relative;
+}
+.password-control input {
+  padding-right: var(--space-12);
+}
+.password-toggle {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+}
+.auth-art {
+  height: 300px;
+  max-width: 440px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: var(--space-6) 0;
+}
+.art-plate {
+  width: 224px;
+  height: 224px;
+  background: var(--color-surface);
+  border: 16px solid var(--color-surface-secondary);
+  border-radius: 50%;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  transform: rotate(-15deg);
+}
+.plate-center {
+  position: absolute;
+  inset: var(--space-6);
+  background: var(--color-accent-soft);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.plate-center svg {
+  width: 72px;
+  height: 72px;
+  color: var(--color-primary);
+}
+.plate-leaf {
+  position: absolute;
+  width: 48px;
+  height: 72px;
+  border-radius: 80% 0 80% 0;
+  background: var(--color-primary);
+}
+.leaf-one {
+  top: -12px;
+  right: 16px;
+  transform: rotate(25deg);
+}
+.leaf-two {
+  bottom: 0;
+  left: -8px;
+  background: var(--color-accent);
+  transform: rotate(75deg);
+}
+.plate-seed {
+  position: absolute;
+  width: 20px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-carbs);
+}
+.seed-one {
+  right: 0;
+  bottom: 40px;
+  transform: rotate(30deg);
+}
+.seed-two {
+  left: 24px;
+  top: 8px;
+  width: 12px;
+  height: 20px;
+}
+.art-orbit {
+  position: absolute;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  width: 280px;
+  height: 280px;
+}
+.orbit-two {
+  width: 360px;
+  height: 260px;
+  transform: rotate(-30deg);
+  border-style: dashed;
+}
+.art-note {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+.art-note .icon {
+  color: var(--color-primary);
+  width: 24px;
+  height: 24px;
+}
+.art-note strong {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-medium);
+}
+.note-top {
+  top: var(--space-6);
+  right: 0;
+  transform: rotate(4deg);
+}
+.note-bottom {
+  bottom: var(--space-6);
+  left: 0;
+  transform: rotate(-4deg);
+}
+@media (max-width: 1100px) {
+  .auth-shell {
+    gap: var(--space-8);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+  }
+  .auth-story h1 {
+    font-size: var(--font-size-3xl);
+  }
+  .auth-topbar {
+    padding: var(--space-6) var(--space-8);
+  }
+}
+@media (max-width: 800px) {
+  .auth-shell {
+    grid-template-columns: minmax(0, 460px);
+    justify-content: center;
+    padding: var(--space-6) var(--space-5) var(--space-10);
+    min-height: auto;
+  }
+  .auth-story {
+    display: none;
+  }
+  .auth-topbar {
+    padding: var(--space-6);
+    max-width: 508px;
+    flex-wrap: wrap;
+  }
+  .auth-topbar .theme-switcher-group {
+    width: auto;
+  }
+  .auth-topbar .theme-btn span {
+    display: none;
+  }
+  .auth-topbar .theme-btn {
+    width: 44px;
+    min-width: 44px;
+  }
+  .auth-topbar .brand-tag {
+    display: none;
+  }
+  .auth-card {
+    padding: var(--space-8);
+  }
+}
+@media (max-width: 430px) {
+  .auth-card {
+    padding: var(--space-6);
+  }
+  .auth-topbar {
+    padding: var(--space-5);
+  }
+  .auth-topbar .brand-name {
+    font-size: var(--font-size-lg);
+  }
+  .auth-topbar .brand-logo {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+  .auth-topbar .brand-logo img { width: 32px; height: 32px; }
+  .auth-shell {
+    padding-top: var(--space-3);
+  }
+  .auth-card-heading h2 {
+    font-size: var(--font-size-xl);
+  }
+}
