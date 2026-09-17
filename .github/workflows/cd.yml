@@ -64,5 +64,5 @@ jobs:
             --allow-unauthenticated \
             --port 8080 \
             --add-cloudsql-instances ${{ vars.GCP_CLOUDSQL_INSTANCE }} \
-            --set-env-vars "APP_ENV=production,ALLOWED_HOSTS=*" \
+            --set-env-vars 'APP_ENV=production,ALLOWED_HOSTS=["*"]' \
             --set-secrets "DATABASE_URL=nutricoach-db-url:latest,GEMINI_API_KEY=nutricoach-gemini-key:latest,SECRET_KEY=nutricoach-secret-key:latest,CSRF_SECRET=nutricoach-csrf-secret:latest"
